@@ -8,3 +8,6 @@ __pycache__/
 characters/*/raw/walk_*/
 characters/*/raw/turn_*/
 experiments/17_wan_video/*/frames/
+
+# built demo (python3 tools/build_demo.py)
+dist/
