@@ -78,6 +78,13 @@ without review gates (`--review none`) to see what slips through.
 
 ## Open issues (backlog)
 
+- **Kaela grows and shrinks during her walk cycles** (reported by the user 2026-11-16, visible in the demo and
+  `characters/kaela/kaela_walk_review.png`; not yet investigated). Suspect first: the zoom compensation in
+  `pipeline/video.py` (`normalise_size`) rescales every frame so the *head width* matches the standing frame -
+  her headwrap tail swinging out sideways would change that width and pump the size. Check the per-frame
+  `scales`, then consider measuring something stable instead (head height, or skip the compensation for
+  clips pinned at both ends, which no longer zoom). Check the other characters for the same effect.
+
 - Long robes/dresses: no visible step rhythm, cycle length is a guess (Selka down/left are flagged).
 - A thin item (spear shaft) blinking in a walk is not caught by the vanishing-item check (`missing_upper`).
 - Side views drawn by the edit fallback keep far-side items visible (Kaela's shield; experiment 19).
