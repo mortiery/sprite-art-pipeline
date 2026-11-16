@@ -124,7 +124,7 @@
           7,
           8
         ],
-        "frameRate": 3.2,
+        "frameRate": 4.92,
         "repeat": -1
       },
       "idle-down": {
@@ -145,7 +145,7 @@
           16,
           17
         ],
-        "frameRate": 4.41,
+        "frameRate": 8.53,
         "repeat": -1
       },
       "idle-left": {
@@ -187,7 +187,7 @@
           34,
           35
         ],
-        "frameRate": 4.74,
+        "frameRate": 4.92,
         "repeat": -1
       },
       "idle-up": {
@@ -230,24 +230,29 @@
   },
   "qc": {
     "generated_walk": {
-      "ok": true,
-      "problems": []
+      "ok": false,
+      "problems": [
+        "walk_down: no clear step rhythm (legs hidden by long clothing, or the model shuffled): the cycle length is a guess - check the GIF or the frames by eye",
+        "walk_left: no clear step rhythm (legs hidden by long clothing, or the model shuffled): the cycle length is a guess - check the GIF or the frames by eye"
+      ]
     },
     "walk_clips": {
       "down": {
-        "problems": [],
-        "cycle_start": 19,
-        "cycle_frames": 40,
-        "loop_jump": 0.0234,
+        "problems": [
+          "no clear step rhythm (legs hidden by long clothing, or the model shuffled): the cycle length is a guess - check the GIF or the frames by eye"
+        ],
+        "cycle_start": 42,
+        "cycle_frames": 26,
+        "loop_jump": 0.0329,
         "frames_used": [
-          19,
-          24,
-          29,
-          34,
-          39,
-          44,
-          49,
-          54
+          42,
+          45,
+          48,
+          52,
+          55,
+          58,
+          62,
+          65
         ],
         "drift_removed_px": [
           0,
@@ -255,19 +260,21 @@
         ]
       },
       "left": {
-        "problems": [],
-        "cycle_start": 26,
-        "cycle_frames": 29,
-        "loop_jump": 0.0341,
+        "problems": [
+          "no clear step rhythm (legs hidden by long clothing, or the model shuffled): the cycle length is a guess - check the GIF or the frames by eye"
+        ],
+        "cycle_start": 24,
+        "cycle_frames": 15,
+        "loop_jump": 0.0442,
         "frames_used": [
+          24,
           26,
+          28,
           30,
+          32,
           33,
-          37,
-          40,
-          44,
-          48,
-          51
+          35,
+          37
         ],
         "drift_removed_px": [
           4,
@@ -296,18 +303,18 @@
       },
       "up": {
         "problems": [],
-        "cycle_start": 24,
-        "cycle_frames": 27,
-        "loop_jump": 0.0174,
+        "cycle_start": 22,
+        "cycle_frames": 26,
+        "loop_jump": 0.0235,
         "frames_used": [
-          24,
-          27,
-          31,
-          34,
+          22,
+          25,
+          28,
+          32,
+          35,
           38,
-          41,
-          44,
-          48
+          42,
+          45
         ],
         "drift_removed_px": [
           2,

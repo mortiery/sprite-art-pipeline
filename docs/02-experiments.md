@@ -291,6 +291,29 @@ counted her silver hair as skin (fixed with a tighter colour tolerance), while G
 every automatic check. Neither kind of error is acceptable before 20 minutes of video generation, so the
 builder stops after front + back and after the side views and asks for a look.
 
+## 18 - can a fresh agent follow the guide? (test rounds with subagents)
+
+A subagent with no knowledge of the project got one paragraph describing a character and a pointer to
+README.md and docs/03-agent-guide.md, and had to build the character including both visual reviews. It was
+not allowed to change the pipeline and had to report every unclear passage. I watched its decisions from
+outside and judged the same review sheets myself.
+
+**Round 1 - Tobi** (fox-eared merchant boy with a huge backpack, pots, lantern, fox tail; seed 7). Built
+successfully in about 45 minutes. Its review decisions matched or beat mine: it rejected a front view whose
+pot and lantern sat on the opposite sides from its own `--props`, rejected a back view in which the lantern
+floated beside the backpack instead of hanging from it, and replaced both automatic side-view frames
+(three-quarter back view; eye hidden) with clean profiles. Found and fixed afterwards:
+
+| Finding | Fix |
+|---|---|
+| `--variant 2` on `back` also set variant 2 on every later stage; a later `--redo walk_down --variant 2` silently reused the same seed | variants apply only to the stages named in `--redo`, and default to "one more than last time", so every redo is a new take |
+| "back may show a face" fired on a correct back view | the skin colour had been sampled from the beige blanket roll; it is now taken only from a band around the head axis. The check no longer triggers retries (it never caught a real error) and is reported as a hint |
+| Tobi's down walk played at half speed (37-frame "cycle" = two cycles); Selka's down and left walks too | the cycle is capped at 26 frames (1.6 s); a new check reports "no clear step rhythm" when no pose repeats (long robes) |
+| fox-ear tips cut off in all eight faces | the portrait prompt asks for the whole head including ears, horns and headwear with a gap above; `--face-zoom` added |
+| post-processing options (`--face-zoom`, `--pixel-style` ...) were forgotten by the next `--post-only` | remembered in `raw/state.json` |
+| side-view strips too small to judge, frame order unclear | strip titles say which way the turn runs; the checklist points to the full-size frames; flat items looking thin from the side is stated as correct |
+| guide gaps: picture side vs. character side, `--note` only for `chibi`/`back`, how to judge a walk from stills, walk speed, timings, face framing | rewritten sections in the agent guide |
+
 ## Negative results worth knowing
 
 - **Wan 2.2 with 20 steps and CFG** for walk cycles: slower and worse than the 4-step LoRA (17).

@@ -79,9 +79,11 @@ def _dist(feat: np.ndarray) -> np.ndarray:
     return d
 
 
-def find_cycle(stab: list[Image.Image], *, warmup: int = 10, min_step: int = 4, max_step: int = 20) -> dict:
+def find_cycle(stab: list[Image.Image], *, warmup: int = 10, min_step: int = 4, max_step: int = 13) -> dict:
     """Locate one gait cycle (two steps) in a stabilised walking clip.
 
+    The cycle is at most 2 * max_step frames (26 = 1.6 s at 16 fps): longer lags only ever matched because
+    they span two cycles, which made the walk play at half speed (experiment 17, Tobi and Selka).
     step  = number of frames between a pose and the next *similar leg silhouette* (half a gait cycle)
     period= 2 * step (left step + right step)
     start = frame of an extreme pose (legs farthest from the standing pose) chosen so that the loop
@@ -121,7 +123,9 @@ def find_cycle(stab: list[Image.Image], *, warmup: int = 10, min_step: int = 4, 
         scores[s] = g[s] + g[m] + DL[s, m] - 3.0 * D[s, s + period]
     top = max(scores.values())
     best = min(s for s, v in scores.items() if v >= top - 0.08 * abs(top))
-    return {"start": int(best), "period": period, "step": period // 2, "seam": float(D[best, best + period]),
+    rng = ac[(lags >= 2 * min_step) & (lags <= 2 * max_step)]
+    rhythm = float(rng.min() / max(1e-9, np.median(rng)))  # 1 = no repeating pose at all
+    return {"start": int(best), "period": period, "rhythm": round(rhythm, 3), "step": period // 2, "seam": float(D[best, best + period]),
             "typical_frame_diff": float(np.median([D[i, i + 1] for i in range(warmup, n - 1)])),
             "half_ratio": half_ratio, "legs_vs_standing": [round(float(v), 4) for v in g],
             "autocorr": {int(p): round(float(v), 4) for p, v in zip(lags, ac)}}
@@ -407,6 +411,9 @@ def analyse_clip(folder: str | Path, cell: float) -> dict:
     problems = []
     if max(g[s:s + p]) < 0.07:
         problems.append("the legs barely move")
+    if cyc["rhythm"] > 0.85:
+        problems.append(f"no clear step rhythm (legs hidden by long clothing, or the model shuffled): the cycle "
+                        f"length is a guess - check the GIF or the frames by eye")
     if cyc["seam"] > 2.0 * cyc["typical_frame_diff"] + 0.005:
         problems.append(f"the walk cycle does not close cleanly (jump {cyc['seam']:.3f})")
     size = float(np.median(scales[s:s + p]))                # zoom that had to be undone

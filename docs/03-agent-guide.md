@@ -21,46 +21,64 @@ python3 -m pipeline.character --name selka --seed 11 \
 - `--desc`: the same character as **one prose sentence** starting with "a ...". It is pasted into the edit
   prompts.
 - `--props`: everything the character carries, with **where** it is: which hand, which shoulder, "across the
-  back". Leave it out for characters without items. This is what keeps a sword from vanishing.
-- `--seed`: fixes every stage. Same seed + same models = same character.
+  back", "hanging from the left side of the backpack". Always mean the **character's** left and right. Leave it
+  out for characters without items. This is what keeps a sword from vanishing.
+- `--seed`: fixes every stage. Same seed + same models = same character (verified bit-identical).
 
-Every call prints one JSON object. Its `status` says what to do next.
+Every call prints one JSON object. Its `status` says what to do next; `if_ok` / `if_wrong` contain the
+commands to continue. Only `--name` is needed on later calls - description, props, notes, seeds, approvals and
+look options are stored in `characters/<name>/raw/state.json`.
 
-### `"status": "review_needed", "gate": "views"`  (after about 3 minutes)
+**Left and right.** The character's right side is on the **left** of the picture in the front view and on the
+**right** of the picture in the back view. Facing left, you see the character's left side; facing right, the
+right side. When a view is wrong, write a note that names both, e.g. "the lantern hangs from the right side of
+his backpack, on the left side of the picture".
 
-Open `image` (`characters/selka/selka_review_views.png`: concept, front view, back view) at full size and go
-through `checklist`. Typical failures: an item is missing or only half drawn in the back view (a sword hilt
-without blade), the item is on the wrong side (what is on the character's right is on the **right** of the back
-view), something was invented (a bag), the back view still shows a face.
+### `"status": "review_needed", "gate": "views"`  (after about 3-5 minutes)
+
+Open `image` (`characters/selka/selka_review_views.png`: concept, front view, back view) and go through
+`checklist`. Front and back are judged as a pair. Typical failures: an item is missing or only half drawn in
+the back view (a sword hilt without blade), an item is on the wrong side, front and back disagree, something
+was invented (a bag), an item that should hang from something floats next to it, the back view shows a face.
 
 ```bash
-python3 -m pipeline.character --name selka --approve views                 # all good -> continue
-python3 -m pipeline.character --name selka --redo back --variant 1 \
-        --note back="the staff is in her right hand, on the right side of the picture"   # fix the back view, look again
-python3 -m pipeline.character --name selka --redo chibi --variant 1        # front view wrong (back is redone too)
+python3 -m pipeline.character --name selka --approve views       # all good -> continue
+python3 -m pipeline.character --name selka --redo back \
+        --note back="the staff is in her right hand, on the right side of the picture"   # new back view, look again
+python3 -m pipeline.character --name selka --redo chibi \
+        --note chibi="..."                                        # new front view; the back view is redone too
 ```
 
-`--variant n` changes the seed of the redone stages; `--note <stage>="..."` adds a sentence to that stage's
-prompt and is remembered. Only `--name` is needed on later calls - description, notes, seeds and approvals are
-stored in `characters/<name>/raw/state.json`.
+- `--redo` gives the named stages a **new seed** every time (variant 1, 2, 3 ... counted per stage, stored in
+  `state.json`). Stages derived from them are regenerated with their own seed, because their input changed.
+  `--variant n` sets a specific variant instead, e.g. to go back to an earlier take.
+- `--note <stage>="..."` adds a sentence to that stage's prompt and is remembered; `--note <stage>=` removes it.
+  Notes work for `chibi` (front view) and `back`. Everything later is steered by the pictures, not by text.
+- `automatic_warnings` come from colour heuristics. "back: may show a face" has so far only been a false alarm
+  (beige or skin-coloured items on the back); trust your eyes.
+- Give up after about three takes of the same stage and approve the best one, writing down what is wrong; the
+  video stages repeat whatever the pictures show.
 
 ### `"status": "review_needed", "gate": "sides"`  (about 3 more minutes)
 
 The side views are frames from two short videos in which the character turns from the approved front view to
 the approved back view. Open `selka_review_sides.png`: the top row shows front, left, right, back; below are
-strips with the frames around each chosen side view, numbered.
+strips with the frames around each chosen side view, numbered, with the direction of the turn in the title.
 
-- LEFT must face the left edge, RIGHT the right edge, in profile (one eye visible, not the back of the head).
-- If a neighbouring frame is the better side view, take it: `--pick left=21 --pick right=28`.
-- An item held on the far side is correctly hidden behind the body. A half-transparent or smeared item is a
-  defect - pick a frame where it is solid.
-- If a side is wrong altogether (`automatic_warnings` says it was mirrored): `--redo turn_left --variant 1`.
+- LEFT must face the left edge, RIGHT the right edge, in clean profile: **one eye visible**. The back of the
+  head and no eye means the frame is too close to the back view.
+- The automatic choice is often 2-4 frames off. The strips are small: open candidates at full size from
+  `characters/<name>/raw/turn_left/frame_NNN.png` (all frames of the turn are there) and take the best with
+  `--pick left=25 --pick right=27`.
+- An item on the far side is correctly hidden by the body; a flat item (backpack, shield) looks thin from the
+  side. A half-transparent, smeared or "held" item that should hang is a defect - pick another frame.
+- If a side is wrong altogether (`automatic_warnings` says it was mirrored): `--redo turn_left`.
 
 ```bash
 python3 -m pipeline.character --name selka --pick left=21 --approve sides
 ```
 
-### `"status": "done"`  (about 20 more minutes: 4 walk clips, 8 faces)
+### `"status": "done"`  (about 15-20 more minutes: 4 walk clips of about 2-4 minutes, 8 faces of about a minute)
 
 ```
 characters/selka/
@@ -69,7 +87,7 @@ characters/selka/
   selka_walk8.png        432x192 = 9x4 frames: column 0 standing, columns 1-8 one walk cycle per direction
   selka_faces.png        576x288 = 4x2 faces of 144x144, order = manifest.faces.frames
   selka_walk_<dir>.gif   the four walk cycles as they will look in the game (4x)
-  selka_walk_review.png  all 36 frames of the smooth sheet, 4x
+  selka_walk_review.png  all 36 frames of the smooth sheet, 4x (one row per direction)
   selka_preview.png      3-frame sheet + faces
   selka_stand_<dir>.png  the four standing views, 640 px, transparent
   selka_concept.png      full-size anime concept art
@@ -79,37 +97,51 @@ characters/selka/
                          frame_001.png ... (numbers = the ones on the review sheets) plus a .webp preview
 ```
 
-Look at `look_at` (the walk review sheet and the preview) and read `problems`. The character is registered
-in `characters/index.json`, which the Phaser demo reads.
+Check, in this order:
+
+1. `problems` in the printed JSON.
+2. `<name>_walk_review.png`: in every row the legs alternate, items stay where they are, the colours stay the
+   same. If you cannot watch the GIFs, judge the loop from the stills: the last frame of a row should lead
+   back into the first one. The full-size frames are in `raw/walk_<dir>/`; the manifest's
+   `qc.walk_clips.<dir>` says which ones were used (`frames_used`) and how long one cycle is (`cycle_frames`).
+3. The walk speed: `walkAnim.animations.walk-<dir>.frameRate` should be similar for all four directions
+   (6-9 fps for normal clips). A direction at about half the others means two cycles were taken as one.
+4. `<name>_faces.png`: every expression distinct; nothing important cut off at the top (ears, hat, horns).
+   If it is: `--post-only --face-zoom 1.0` (more of the portrait), or `--redo face_neutral` (new portraits, all
+   emotions follow).
+
+The character is registered in `characters/index.json`, which the Phaser demo reads.
 
 ## 2. Repair only what is wrong
 
 ```bash
-python3 -m pipeline.character --name selka --redo walk_left --variant 1     # another take of one walk clip
-python3 -m pipeline.character --name selka --redo face_angry --variant 2    # one face
-python3 -m pipeline.character --name selka --post-only --pixel-style smooth # only slicing / pixelising (seconds, no GPU)
+python3 -m pipeline.character --name selka --redo walk_left          # another take of one walk clip
+python3 -m pipeline.character --name selka --redo face_angry         # one face
+python3 -m pipeline.character --name selka --post-only --pixel-style smooth   # only slicing / pixelising (seconds, no GPU)
 ```
 
 Stages: `concept chibi back turn_left turn_right walk_down walk_left walk_right walk_up face_<emotion>`.
 Redoing a stage redoes what is derived from it (`chibi` -> `back` -> turns and walks; `turn_left` -> `walk_left`;
 `face_neutral` -> all faces) and invalidates the approval of a gate whose pictures changed.
 
-`problems` comes from automatic checks and can be wrong in both directions; the eyes decide.
+`problems` comes from automatic checks and can be wrong in both directions; the eyes decide. The builder
+already retried twice before reporting a walk problem.
 
 | Message | Meaning | What to do |
 |---|---|---|
-| `the walk cycle does not close cleanly` | last and first frame of the cycle differ | watch the GIF; if it jumps, `--redo walk_<dir> --variant n` |
+| `the walk cycle does not close cleanly` | last and first frame of the cycle differ | look at the row; if it jumps, `--redo walk_<dir>` |
+| `no clear step rhythm` | legs hidden by long clothing, or the model shuffled; the cycle length is a guess | look at the row and the speed; acceptable for robes |
 | `the legs barely move` | long robe, or the model stood still | usually acceptable for robes, else redo |
 | `the head changes during the walk` | face redrawn or head turned | redo |
-| `part of the figure above the waist disappears` | a carried item fades out in some frames | redo (the builder already retried twice) |
+| `part of the figure above the waist disappears` | a carried item fades out in some frames | redo |
 | `colours appear that the standing view does not have` | the model invented clothing, typically for body parts hidden in the standing view (legs behind a cape) | redo; if it repeats, add the missing part to `--desc` ("armoured legs") |
 | `the character changes size a lot` | walked towards / away from the camera | redo |
-| `left[0] does not face left ...` | colour heuristic on the 3-frame sheet | check by eye; pale hair, hats and helmets cause false alarms |
-| `turn_left: ... mirrored the other side view` | no clip turned that way | `--redo turn_left --variant n`, or accept for symmetric characters |
+| `turn_left: ... mirrored the other side view` | no clip turned that way | `--redo turn_left`, or accept for symmetric characters |
 
 Useful switches: `--review none` (no gates, for batches), `--pixel-style crisp|smooth|classic`,
-`--face-style lines|smooth|crisp`, `--colors 64`, `--face-grid 1|2|3`, `--walk-frames 8`, `--video-full`
-(20-step walk clips: 6x slower, livelier but less regular), `--key green|magenta|blue`,
+`--face-style lines|smooth|crisp`, `--face-zoom 0.9`, `--colors 64`, `--face-grid 1|2|3`, `--walk-frames 8`
+(all of these are post-processing: `--post-only` applies them in seconds, and they are remembered),
+`--video-full` (20-step walk clips: 6x slower, livelier but less regular), `--key green|magenta|blue`,
 `--concept-image path.png` (start from existing art), `--emotions neutral,happy,...`.
 
 ## 3. Use the assets in Phaser (3.x or 4.x)

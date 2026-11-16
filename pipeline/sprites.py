@@ -160,13 +160,17 @@ def _figure(frame: Image.Image):
 
 
 def _skin_color(front_idle: Image.Image):
-    """Skin colour of a front-view sprite: the most frequent light, peach-hued colour in the upper 60 %.
+    """Skin colour of a front-view sprite: the most frequent light, peach-hued colour in the upper 60 %, in a
+    band of +-12 % of the figure height around the head axis.
     The hue window excludes silver/white hair (too little yellow) and gold trim (too yellow)."""
     a, b, cx = _figure(front_idle)
     if b is None:
         return None
     x0, y0, x1, y1 = b
-    arr = np.asarray(front_idle)[y0:y0 + int((y1 - y0) * 0.6)].reshape(-1, 4)
+    # only a band around the head axis: things worn behind the head (a blanket roll on a backpack, a hat brim)
+    # stick out sideways, the face does not
+    half = max(2, int((y1 - y0) * 0.12))
+    arr = np.asarray(front_idle)[y0:y0 + int((y1 - y0) * 0.6), max(0, int(cx) - half):int(cx) + half].reshape(-1, 4)
     px = arr[arr[:, 3] > 0][:, :3]
     if len(px) == 0:
         return None
@@ -179,14 +183,14 @@ def _skin_color(front_idle: Image.Image):
     return cols[ok][cnt[ok].argmax()].astype(np.uint8)
 
 
-def _skin_stats(frame: Image.Image, skin, tol: float = 0.07) -> tuple[int, float]:
+def _skin_stats(frame: Image.Image, skin, tol: float = 0.07, head: float = 0.55) -> tuple[int, float]:
     """(number of skin pixels in the head area, their mean x offset from the head centre in px).
     tol = colour distance in OKLab; 0.07 survives palette reduction, 0.035 separates pale skin from silver hair."""
     a, b, cx = _figure(frame)
     if b is None:
         return 0, 0.0
     x0, y0, x1, y1 = b
-    arr = np.asarray(frame)[y0:y0 + int((y1 - y0) * 0.55)]
+    arr = np.asarray(frame)[y0:y0 + int((y1 - y0) * head)]
     lab = P.rgb_to_oklab(arr[..., :3].astype(np.float32) / 255.0)
     m = (np.sqrt(((lab - P.rgb_to_oklab(skin.astype(np.float32) / 255.0)) ** 2).sum(-1)) < tol) & (arr[..., 3] > 0)
     n = int(m.sum())

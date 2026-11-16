@@ -1,0 +1,178 @@
+{
+ "source": {
+  "tags": "1boy, solo, young boy, fox boy, messy orange hair, fox ears, orange fox ears, amber eyes, green hooded tunic, hood down, brown shorts, bushy fox tail, orange fox tail, sandals, leg wraps, large wooden backpack, frame backpack, rolled blanket on backpack, pots hanging from backpack, lantern hanging from backpack, empty hands",
+  "desc": "a cheerful young travelling merchant boy with fox ears, a bushy orange fox tail, messy orange hair and amber eyes, wearing a green hooded tunic with the hood down, brown shorts and sandals with cloth leg wraps, carrying a very large wooden-framed backpack stuffed with goods on his back, with empty hands",
+  "seed": 7,
+  "props": "a very large wooden-framed backpack on his back, taller than his head, stuffed with goods, with a rolled blanket strapped across its top, small cooking pots hanging from its left side and a lantern hanging from its right side; his hands are empty",
+  "notes": {
+   "chibi": "the lantern hangs from the right side of his backpack, on the left side of the picture, and the cooking pot hangs from the left side of his backpack, on the right side of the picture; his hands are empty",
+   "back": "the lantern hangs from a hook on the right side of the backpack frame, touching the backpack, on the right side of the picture, and the cooking pot hangs from the left side of the backpack, on the left side of the picture; his hands are empty and hang at his sides; one rolled blanket on top of the backpack"
+  },
+  "key": "blue"
+ },
+ "variants": {
+  "turn_left": 2,
+  "chibi": 1,
+  "walk_right": 2,
+  "back": 2,
+  "walk_down": 3,
+  "turn_right": 2,
+  "walk_left": 2,
+  "walk_up": 2,
+  "face_neutral": 1,
+  "face_happy": 1,
+  "face_angry": 1,
+  "face_sad": 1,
+  "face_surprised": 1,
+  "face_embarrassed": 1,
+  "face_determined": 1,
+  "face_hurt": 1
+ },
+ "stages": {
+  "concept": {
+   "seconds": 6.0,
+   "attempts": 1,
+   "seed": 7,
+   "model": "turbo",
+   "figures": 1
+  },
+  "chibi": {
+   "seconds": 140.2,
+   "attempts": 1,
+   "seed": 8926
+  },
+  "back": {
+   "seconds": 139.3,
+   "attempts": 1,
+   "seed": 17845,
+   "problems": []
+  },
+  "turn_right": {
+   "seconds": 77.1,
+   "seed": 20845,
+   "order": "front_back",
+   "mirrored_input": false,
+   "frame": 27,
+   "problems": [],
+   "picked_by": "reviewer"
+  },
+  "turn_left": {
+   "seconds": 71.9,
+   "seed": 20946,
+   "order": "back_front",
+   "mirrored_input": true,
+   "frame": 25,
+   "problems": [],
+   "picked_by": "reviewer"
+  },
+  "walk_down": {
+   "attempts": 1,
+   "seconds": 125.5,
+   "seed": 27764,
+   "problems": [],
+   "cycle": {
+    "start": 11,
+    "period": 37,
+    "seam": 0.030970701947808266,
+    "head_error": 0.0243,
+    "upper_lost": 0.0005,
+    "new_colours": 0.0003
+   }
+  },
+  "walk_left": {
+   "attempts": 1,
+   "seconds": 122.6,
+   "seed": 19845,
+   "problems": [],
+   "cycle": {
+    "start": 14,
+    "period": 17,
+    "seam": 0.04103386774659157,
+    "head_error": 0.0201,
+    "upper_lost": 0.0,
+    "new_colours": 0.0006
+   }
+  },
+  "walk_right": {
+   "attempts": 1,
+   "seconds": 121.9,
+   "seed": 19845,
+   "problems": [],
+   "cycle": {
+    "start": 25,
+    "period": 21,
+    "seam": 0.012519863434135914,
+    "head_error": 0.0174,
+    "upper_lost": 0.0,
+    "new_colours": 0.001
+   }
+  },
+  "walk_up": {
+   "attempts": 1,
+   "seconds": 122.3,
+   "seed": 19845,
+   "problems": [],
+   "cycle": {
+    "start": 22,
+    "period": 21,
+    "seam": 0.012948918156325817,
+    "head_error": 0.0173,
+    "upper_lost": 0.0,
+    "new_colours": 0.0006
+   }
+  },
+  "face_neutral": {
+   "seconds": 67.3,
+   "attempts": 1,
+   "seed": 10926
+  },
+  "face_happy": {
+   "seconds": 19.0,
+   "attempts": 1,
+   "seed": 10926
+  },
+  "face_angry": {
+   "seconds": 135.2,
+   "attempts": 1,
+   "seed": 10926
+  },
+  "face_sad": {
+   "seconds": 67.1,
+   "attempts": 1,
+   "seed": 10926
+  },
+  "face_surprised": {
+   "seconds": 68.1,
+   "attempts": 1,
+   "seed": 10926
+  },
+  "face_embarrassed": {
+   "seconds": 68.1,
+   "attempts": 1,
+   "seed": 10926
+  },
+  "face_determined": {
+   "seconds": 67.1,
+   "attempts": 1,
+   "seed": 10926
+  },
+  "face_hurt": {
+   "seconds": 68.1,
+   "attempts": 1,
+   "seed": 10926
+  }
+ },
+ "approved": {
+  "views": {
+   "chibi": "6f6981b8b7c688590d07d04ce4f489ec6110ef9d",
+   "back": "b326ecd68303ca3008dfd5aeda963e96dff9f35b"
+  },
+  "sides": {
+   "stand_left": "5937d350f767ae7103dd5f013194db82775a3722",
+   "stand_right": "22529752afcfd7e7f8018c2abdfb9c10236bfc5a"
+  }
+ },
+ "look": {
+  "face_zoom": 0.9
+ }
+}

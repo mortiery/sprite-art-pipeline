@@ -54,8 +54,8 @@ PROMPTS = {
         # refs: [concept]
         "portrait": ("Redraw the character in the image as a face portrait for an RPG dialogue box: a tight head-and-shoulders "
                      "close-up, facing the viewer, head upright and centred. The head is large and fills most of the frame; the "
-                     "top of the hair or headwear is just inside the upper edge and only the top of the shoulders is visible at "
-                     "the bottom edge. Expression: {expression}. Keep the same face, hairstyle, outfit, colours and anime art "
+                     "whole head is inside the picture, including hair, ears, horns and headwear, with a small gap above its "
+                     "highest point, and only the top of the shoulders is visible at the bottom edge. Expression: {expression}. Keep the same face, hairstyle, outfit, colours and anime art "
                      "style. " + KEYED),
         # refs: [neutral portrait]
         "expression": ("Change the character's facial expression: {expression}. Keep the hairstyle, outfit, colours, art style, "
@@ -71,8 +71,8 @@ PROMPTS = {
                  "is added.{note} " + STYLE + " " + KEYED),
         "portrait": ("Face portrait of the character from <ref_image_0> for an RPG dialogue box: a tight head-and-shoulders "
                      "close-up, facing the viewer, head upright and centred. The head is large and fills most of the frame; the "
-                     "top of the hair or headwear is just inside the upper edge and only the top of the shoulders is visible at "
-                     "the bottom edge. Expression: {expression}. The character is {desc}. Same face, hairstyle, colours and "
+                     "whole head is inside the picture, including hair, ears, horns and headwear, with a small gap above its "
+                     "highest point, and only the top of the shoulders is visible at the bottom edge. Expression: {expression}. The character is {desc}. Same face, hairstyle, colours and "
                      "outfit as the reference. " + STYLE + " " + KEYED),
         "expression": ("The same bust portrait as <ref_image_0>: same character, same framing, same pose, same hairstyle, same "
                        "outfit, same colours, same art style and same plain background. Only the facial expression changes: "

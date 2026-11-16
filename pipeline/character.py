@@ -98,7 +98,8 @@ class Builder:
         (self.raw / "state.json").write_text(json.dumps(self.state, indent=1))
 
     def set_redo(self, stages: list[str], variant: int | None = None) -> None:
-        """Redoing a stage also redoes everything derived from it. `variant` shifts the seeds of these stages."""
+        """Redoing a stage also redoes everything derived from it. The stages named here get a new seed: `variant`
+        if given, otherwise one more than their stored variant. Derived stages keep theirs."""
         redo = set(stages)
         walks, faces = {f"walk_{d}" for d in sheets.DIRS}, {f"face_{e}" for e in self.s.emotions}
         if "concept" in redo:
@@ -116,9 +117,11 @@ class Builder:
         if unknown:
             raise SystemExit(f"unknown stage(s): {', '.join(sorted(unknown))}")
         self.redo = redo
-        if variant is not None:
-            for st in redo:
-                self.state["variants"][st] = variant
+        for st in stages:                                   # a new take only for the stages named explicitly;
+            old = self.state["variants"].get(st, 0)          # derived stages keep their seeds (their input changed)
+            self.state["variants"][st] = old + 1 if variant is None else variant
+            if variant is not None and variant == old and st not in ("concept",) and not st.startswith("face_neutral"):
+                print(f"[note] {st} already used variant {variant}: same seed as before", flush=True)
 
     def _seed(self, stage: str, base: int, attempt: int = 0) -> int:
         return self.s.seed + base + attempt * 101 + self.state["variants"].get(stage, 0) * 7919
@@ -190,27 +193,23 @@ class Builder:
             self._gen("chibi", self._edit("chibi", "chibi", [self._ref("concept")], seed), seed)
 
     def back(self) -> None:
-        """Back standing view, drawn from the front view. Checked: it must not show a face."""
+        """Back standing view, drawn from the front view. A colour heuristic warns if it seems to show a face;
+        it does not retry (so far it only raised false alarms) - the reviewer decides."""
         if not self._need("back"):
             return
+        seed = self._seed("back", 2000)
+        img = self._gen("back", self._edit("back", "back", [self._ref("chibi")], seed), seed)
         front = S.key_background(Image.open(self.raw / "chibi.png")).resize((96, 96), Image.BOX)
         skin = S._skin_color(front)
-        n_front = max(1, S._skin_stats(front, skin, 0.035)[0]) if skin is not None else 1
-        ref, best = self._ref("chibi"), None
-        for attempt in range(self.s.max_retries + 1):
-            seed = self._seed("back", 2000, attempt)
-            img = self._gen("back", self._edit("back", "back", [ref], seed), seed, attempt)
-            problems = []
-            if skin is not None:
-                n = S._skin_stats(S.key_background(img).resize((96, 96), Image.BOX), skin, 0.035)[0]
-                if n > 0.4 * n_front:
-                    problems.append(f"shows a face ({n} skin px, front view has {n_front}): not a back view")
-            if best is None or len(problems) < len(best[0]):
-                best = (problems, dict(self.state["stages"]["back"]), (self.raw / "back.png").read_bytes())
-            if not problems:
-                break
-        (self.raw / "back.png").write_bytes(best[2])
-        self._done("back", **{**best[1], "attempts": attempt + 1, "problems": best[0]})
+        problems = []
+        if skin is not None:
+            n_front = max(1, S._skin_stats(front, skin, 0.035)[0])
+            n = S._skin_stats(S.key_background(img).resize((96, 96), Image.BOX), skin, 0.035)[0]
+            if n > 0.4 * n_front:
+                problems.append(f"may show a face ({n} pixels of skin colour {tuple(int(v) for v in skin)} in the head "
+                                f"area, front view has {n_front}) - colour heuristic, check by eye")
+        self.state["stages"]["back"]["problems"] = problems
+        self.save_state()
 
     # ---- standing views in clip space -----------------------------------------
     def _stands(self) -> dict:
@@ -420,10 +419,16 @@ class Builder:
                 if len(files) < 2 or not cur:
                     continue
                 lo = min(max(1, cur - 5), max(1, len(files) - 10))
-                strips.append((side, cur, [(n, Image.open(files[n - 1]).convert("RGB").resize((228, 228), Image.LANCZOS))
-                                           for n in range(lo, min(len(files), lo + 10) + 1)]))
-            checks.append("each strip shows the frames around the chosen side view (marked). If another frame is a better "
-                          "side view - cleaner profile, face visible, item not cut - take it with --pick <side>=<number>")
+                order = self.state["stages"].get(f"turn_{side}", {}).get("order", "front_back")
+                toward = "the BACK view" if order == "front_back" else "the FRONT view"
+                strips.append((side, cur, toward, [(n, Image.open(files[n - 1]).convert("RGB").resize((228, 228), Image.LANCZOS))
+                                                   for n in range(lo, min(len(files), lo + 10) + 1)]))
+            checks.append("each strip shows the frames around the chosen side view (marked); higher numbers are closer to "
+                          "the view named in the strip title. If another frame is a better side view - clean profile with one "
+                          "eye visible, items solid and on the right side - take it with --pick <side>=<number>. Open "
+                          f"{self.raw}/turn_<side>/frame_NNN.png at full size to compare candidates; all frames of the turn "
+                          "are there, not only the ones in the strip")
+            checks.append("a flat item (backpack, shield, cape) looks thin from the side - that is correct, not a defect")
         width = max(sum(im.width for im in ims) + pad * (len(ims) + 1), 11 * (228 + 8) + pad * 2)
         sheet = Image.new("RGB", (width, h + top + pad + len(strips) * (228 + top + pad)), (24, 24, 28))
         dr, x = ImageDraw.Draw(sheet), pad
@@ -432,8 +437,9 @@ class Builder:
             sheet.paste(im, (x, top))
             x += im.width + pad
         y = h + top + pad
-        for side, cur, frames in strips:
-            dr.text((pad, y + 7), f"TURN CLIP FOR THE {side.upper()} VIEW - chosen: frame {cur}", fill=(235, 235, 240))
+        for side, cur, toward, frames in strips:
+            dr.text((pad, y + 7), f"TURN CLIP FOR THE {side.upper()} VIEW - chosen: frame {cur} - higher numbers turn "
+                                  f"towards {toward}", fill=(235, 235, 240))
             for i, (n, im) in enumerate(frames):
                 x = pad + i * (228 + 8)
                 sheet.paste(im, (x, y + top))
@@ -444,15 +450,17 @@ class Builder:
             y += 228 + top + pad
         path = self.out / f"{s.name}_review_{gate}.png"
         sheet.save(path)
-        cmd = f"python3 -m pipeline.character --name {s.name} --out {self.out}"
+        cmd = f"python3 -m pipeline.character --name {s.name}"
+        if self.out.resolve() != (Path("characters") / s.name).resolve():
+            cmd += f" --out {self.out}"
         warn = [f"{st}: {p}" for st in redo for p in self.state["stages"].get(st, {}).get("problems", [])]
         return {"status": "review_needed", "gate": gate, "image": str(path),
                 "instructions": "Open the image at full size and check every point. Approve only if all are true.",
                 "checklist": checks, "automatic_warnings": warn,
                 "if_ok": f"{cmd} --approve {gate}",
                 **({"if_another_frame_is_better": f"{cmd} --pick left=<frame> --pick right=<frame>"} if gate == "sides" else {}),
-                "if_wrong": {st: (f'{cmd} --redo {st} --variant <n>' + (f' --note {st}="<what must be different>"'
-                                                                         if gate == "views" else "") + f"   # {why}")
+                "if_wrong": {st: (f'{cmd} --redo {st}' + (f' --note {st}="<what must be different>"'
+                                                          if gate == "views" else "") + f"   # {why}")
                              for st, why in redo.items()}}
 
     # ---- post-processing (pure Python, deterministic) ------------------------
@@ -572,7 +580,8 @@ def main() -> None:
                     help="correction added to the prompt of one stage (chibi or back); STAGE= clears it")
     ap.add_argument("--redo", default="", help="comma-separated stages to regenerate: concept chibi back turn_left "
                                                "turn_right walk_down walk_left walk_right walk_up face_<emotion>")
-    ap.add_argument("--variant", type=int, default=None, help="with --redo: use other seeds for these stages (1, 2, 3 ...)")
+    ap.add_argument("--variant", type=int, default=None, help="with --redo: seed variant for the named stages (default: one "
+                                                         "more than last time, so every --redo is a new take)")
     ap.add_argument("--approve", default="", help="comma-separated review gates to approve: views, sides")
     ap.add_argument("--review", default="views,sides", help="gates at which the build stops for approval: views, sides, "
                                                             "views,sides or none (default: views,sides)")
@@ -581,12 +590,14 @@ def main() -> None:
     ap.add_argument("--post-only", action="store_true", help="re-run only the pixel post-processing")
     ap.add_argument("--emotions", default=",".join(DEFAULT_EMOTIONS))
     ap.add_argument("--key", choices=["green", "magenta", "blue"], default=None)
-    ap.add_argument("--face-grid", type=int, default=2, choices=[1, 2, 3])
-    ap.add_argument("--pixel-style", default="crisp", choices=["crisp", "smooth", "classic"],
+    ap.add_argument("--face-grid", type=int, default=None, choices=[1, 2, 3])
+    ap.add_argument("--pixel-style", default=None, choices=["crisp", "smooth", "classic"],
                     help="crisp: nearest sampling, 64 colours | smooth: k-centroid, 64 colours | classic: outline, 24 colours")
-    ap.add_argument("--face-style", default="lines", choices=["lines", "smooth", "crisp"])
-    ap.add_argument("--colors", type=int, default=64, help="palette size for sprites and faces (crisp/smooth)")
-    ap.add_argument("--walk-frames", type=int, default=8, help="frames per gait cycle in the smooth walk sheet")
+    ap.add_argument("--face-style", default=None, choices=["lines", "smooth", "crisp"])
+    ap.add_argument("--face-zoom", type=float, default=None, help="share of the portrait the face tile shows: larger = "
+                    "more of the head (ears, hats), smaller = closer (default 0.9, max 1.0); --post-only is enough")
+    ap.add_argument("--colors", type=int, default=None, help="palette size for sprites and faces (crisp/smooth, default 64)")
+    ap.add_argument("--walk-frames", type=int, default=None, help="frames per gait cycle in the smooth walk sheet (default 8)")
     ap.add_argument("--video-full", action="store_true", help="walk clips with 20 steps and CFG instead of the 4-step "
                     "LoRAs: 6x slower, livelier but less regular motion (experiment 17)")
     ap.add_argument("--concept-image", default=None)
@@ -596,12 +607,22 @@ def main() -> None:
     a = ap.parse_args()
 
     review = tuple(g for g in a.review.split(",") if g and g != "none")
-    spec = Spec(a.name, emotions=[e for e in a.emotions.split(",") if e], review=review, face_grid=a.face_grid,
-                walk_frames=a.walk_frames, video_fast=not a.video_full, concept_image=a.concept_image,
-                edit_model=a.edit_model, concept_model=a.concept_model, pixel_style=a.pixel_style,
-                face_style=a.face_style, sprite_colors=a.colors, face_colors=a.colors)
+    spec = Spec(a.name, emotions=[e for e in a.emotions.split(",") if e], review=review,
+                video_fast=not a.video_full, concept_image=a.concept_image,
+                edit_model=a.edit_model, concept_model=a.concept_model)
     b = Builder(spec, a.out or f"characters/{a.name}", Comfy(a.url))
     src = b.state["source"]                                   # what earlier runs stored; arguments override it
+    look = b.state.setdefault("look", {})                     # post-processing options are remembered as well
+    for key, arg, default in (("face_grid", a.face_grid, 2), ("walk_frames", a.walk_frames, 8),
+                              ("pixel_style", a.pixel_style, "crisp"), ("face_style", a.face_style, "lines"),
+                              ("colors", a.colors, 64), ("face_zoom", a.face_zoom, 0.9)):
+        if arg is not None:
+            look[key] = arg
+        val = look.get(key, default)
+        if key == "colors":
+            spec.sprite_colors = spec.face_colors = val
+        else:
+            setattr(spec, key, min(1.0, val) if key == "face_zoom" else val)
     spec.tags = a.tags if a.tags is not None else src.get("tags", "")
     spec.desc = a.desc if a.desc is not None else src.get("desc", "")
     spec.props = a.props if a.props is not None else src.get("props", "")
