@@ -15,6 +15,7 @@ AI agents can call it. Researched and tested on 2026-11-15/16 with ComfyUI 0.45.
 | Document | Content |
 |---|---|
 | this file | the recommended workflow, models, how to run it |
+| [docs/blog-post.md](docs/blog-post.md) | the story of the project: what failed, the pivot to video, what we learned |
 | [docs/01-research-notes.md](docs/01-research-notes.md) | what the web research found (models, approaches, specs, licences) |
 | [docs/02-experiments.md](docs/02-experiments.md) | every experiment, what won and why, negative results |
 | [docs/03-agent-guide.md](docs/03-agent-guide.md) | how an agent generates characters, reviews them and uses them in Phaser |
