@@ -51,12 +51,12 @@ Per-character state (description, notes, seeds, approvals, pending redos, look o
 
 ## Git
 
-- Commits in this repository are authored as **Yannick Mortier <34096941+mortiery@users.noreply.github.com>** (set in the
-  repository's own `.git/config`; the machine's global identity is a different one - do not override the local
-  setting). The repository is meant to be public: no other personal details in files or commits.
-- `push.autoSetupRemote` is on, so the first `git push` of a branch sets its upstream.
-- Push `master` only. The local branch `backup-before-author-rewrite` holds the commits from before the author
-  rewrite (old identity) and must never be pushed; delete it once the public repository is set up.
+- Public repository: https://github.com/mortiery/sprite-art-pipeline (remote `origin`, SSH). Push `master`.
+- Commits are authored as **Yannick Mortier** with the GitHub no-reply address
+  `34096941+mortiery@users.noreply.github.com`, set in the repository's own `.git/config`. Do not override it
+  with the machine's global identity, and do not put any other e-mail address into commits or files - GitHub
+  rejects pushes that expose the account's private address.
+- `push.autoSetupRemote` is on, so the first `git push` of a new branch sets its upstream.
 
 ## Iterating: fresh-agent test rounds
 
