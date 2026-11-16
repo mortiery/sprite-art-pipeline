@@ -272,6 +272,20 @@ swaps; the client now waits for it to come back and resubmits.
   texture of the upper body slides during the first half of the turn. Right on all eight test clips for the
   facing, within two frames for the frame - the review sheet shows the neighbours so a reviewer can pick.
 
+**Invented clothing.** Garrick's first left walk showed teal trousers in half of the cycle: in his left
+standing view the legs are covered by the cape, and the model filled them in. Two changes: the walk prompt now
+contains the character description ("... wearing steel plate armor ...", plus "outfit and colours stay exactly
+as in the first frame, also on parts that become visible while walking"), and the clip check measures the
+share of figure pixels with a hue the standing frame does not have (15-degree OKLab hue bins, greys ignored).
+Ordinary clips: below 1 %; armour reflections (Garrick right): 1.6 %; the teal trousers: 4.1 %; threshold 2.5 %
+on the median over the cycle. A third check catches items that fade out: share of the standing silhouette
+above the waist not covered by a frame (3 px tolerance) - 0-2 % normally, 4.8 % for Selka's first left walk,
+where the staff blinked out; threshold 3.5 %.
+
+**Reproducibility.** Same seed, same models, same machine: Rin's front view regenerated in a scratch copy was
+bit-identical to the stored one, and the same 81-frame walk clip generated twice was bit-identical in every
+frame (maximum pixel difference 0). Different GPUs or ComfyUI versions may still differ.
+
 **Review gates.** Selka's back view was first rejected three times by an automatic "shows a face" check that
 counted her silver hair as skin (fixed with a tighter colour tolerance), while Garrick's hidden sword passed
 every automatic check. Neither kind of error is acceptable before 20 minutes of video generation, so the

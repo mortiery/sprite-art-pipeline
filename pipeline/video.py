@@ -370,6 +370,32 @@ def missing_upper(standing: Image.Image, frame: Image.Image, n: int = 160, cut: 
     return float((m0 & ~cover).sum() / max(1, m0.sum()))
 
 
+def new_hue_share(standing: Image.Image, frame: Image.Image, n: int = 128, min_chroma: float = 0.03,
+                  bins: int = 24, rare: float = 0.002) -> float:
+    """Share of the figure's pixels that have a colour hue the standing frame does not have (OKLab hue in
+    15-degree bins, neighbours count as present; greys are ignored). Catches clothing the model invents,
+    e.g. teal trousers on a knight whose legs were hidden behind the cape in the start frame. Ordinary
+    clips stay below 1 %, light reflections on armour reach about 2 %."""
+    from . import pixelize as P
+
+    def lab(im):
+        a = np.asarray(im.resize((n, n), Image.BOX), dtype=np.float32) / 255.0
+        return P.rgb_to_oklab(a[a[..., 3] > 0.9][:, :3])
+
+    def hue_bins(L):
+        h = np.degrees(np.arctan2(L[:, 2], L[:, 1])) % 360
+        return np.hypot(L[:, 1], L[:, 2]) > min_chroma, (h / (360 / bins)).astype(int) % bins
+
+    L0, L = lab(standing), lab(frame)
+    if len(L0) == 0 or len(L) == 0:
+        return 0.0
+    m0, b0 = hue_bins(L0)
+    m, b = hue_bins(L)
+    share0 = np.bincount(b0[m0], minlength=bins) / len(L0)
+    present = (share0 > rare) | (np.roll(share0, 1) > rare) | (np.roll(share0, -1) > rare)
+    return float((m & ~present[b]).sum() / len(L))
+
+
 def analyse_clip(folder: str | Path, cell: float) -> dict:
     """Key + lock a walking clip, find one gait cycle and check it.
     Returns {"locked": frames, "anchor": (cx, feet), "cycle": {...}, "lock": {...}, "problems": [...]}"""
@@ -392,6 +418,11 @@ def analyse_clip(folder: str | Path, cell: float) -> dict:
         problems.append(f"part of the figure above the waist disappears during the walk ({lost:.0%} of the standing "
                         f"silhouette): a carried item vanishes in some frames")
     cyc["upper_lost"] = round(float(lost), 4)
+    hue = float(np.median([new_hue_share(locked[0], f) for f in locked[s:s + p]]))
+    if hue > 0.025:
+        problems.append(f"colours appear that the standing view does not have ({hue:.0%} of the figure): "
+                        f"the model invented clothing or an item")
+    cyc["new_colours"] = round(hue, 4)
     head = float(np.median(stats["head_error"][s:s + p]))
     if head > 0.09:
         problems.append(f"the head changes during the walk (error {head:.3f}): turned away or redrawn?")

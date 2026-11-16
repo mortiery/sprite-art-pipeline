@@ -97,7 +97,8 @@ guide). `--review none` skips the gates for unattended runs.
   **crisp** (default: nearest-neighbour after eroding the blended edge ring, 64 colours), **smooth** (dominant
   colour per cell) and **classic** (dominant colour + dark outline, 24 colours). Faces use a line-preserving
   variant at 72 logical pixels. Switching looks needs no regeneration: `--post-only`.
-- **Deterministic and resumable.** Fixed seeds per stage; every raw output is cached in `raw/`; description,
+- **Deterministic and resumable.** Fixed seeds per stage (checked: regenerating a stage with the same seed gives
+  a bit-identical image or clip on this machine); every raw output is cached in `raw/`; description,
   notes, seeds and approvals are remembered in `raw/state.json`; single stages can be redone and everything
   derived from them follows.
 
@@ -166,8 +167,11 @@ The raw video frames (`characters/*/raw/walk_*/`, `turn_*/`, about 26 MB per cli
 
 See the end of [docs/02-experiments.md](docs/02-experiments.md) for negative results. Open points:
 
-- The automatic side-view pick takes the middle of the turn and is sometimes a frame or two off; the `sides`
-  review sheet shows the neighbours for that reason.
+- The automatic side-view pick takes the middle of the turn and was 2-3 frames off for three of six side views
+  (a reviewer picked a neighbour); the `sides` review sheet shows the neighbours for that reason.
+- The video model invents what the standing view hides: Garrick's legs are behind his cape in the left view,
+  and the first left walk gave him teal trousers. The clip check now flags colours the standing view does not
+  have, and the walk prompt carries the character description.
 - Which way the model turns cannot be prompted. The other side is obtained by feeding left-right flipped
   pictures and flipping the result back; this worked on the first try for Rin, but it is a habit of the model,
   not a guarantee - the pipeline retries and, as a last resort, mirrors the side view it has (flagged).

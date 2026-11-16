@@ -9,7 +9,9 @@
   },
   "key": "magenta"
  },
- "variants": {},
+ "variants": {
+  "walk_left": 1
+ },
  "stages": {
   "chibi": {
    "seconds": 110.1,
@@ -53,14 +55,16 @@
   },
   "walk_left": {
    "attempts": 1,
-   "seconds": 222.3,
-   "seed": 4011,
+   "seconds": 220.9,
+   "seed": 11930,
    "problems": [],
    "cycle": {
-    "start": 33,
+    "start": 21,
     "period": 18,
-    "seam": 0.022509241476655006,
-    "head_error": 0.0219
+    "seam": 0.02077348344027996,
+    "head_error": 0.0427,
+    "upper_lost": 0.0,
+    "new_colours": 0.0127
    }
   },
   "walk_right": {

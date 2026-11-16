@@ -75,7 +75,8 @@ characters/selka/
   selka_concept.png      full-size anime concept art
   selka_palette.png      the sprite palette
   busts/selka_<emotion>.png   1024 px transparent bust for menus / cut-ins
-  raw/                   unprocessed model outputs per stage (cache), state.json, turn_*.webp / walk_*.webp
+  raw/                   unprocessed model outputs per stage (cache), state.json; clips as folders of
+                         frame_001.png ... (numbers = the ones on the review sheets) plus a .webp preview
 ```
 
 Look at `look_at` (the walk review sheet and the preview) and read `problems`. The character is registered
@@ -100,6 +101,8 @@ Redoing a stage redoes what is derived from it (`chibi` -> `back` -> turns and w
 | `the walk cycle does not close cleanly` | last and first frame of the cycle differ | watch the GIF; if it jumps, `--redo walk_<dir> --variant n` |
 | `the legs barely move` | long robe, or the model stood still | usually acceptable for robes, else redo |
 | `the head changes during the walk` | face redrawn or head turned | redo |
+| `part of the figure above the waist disappears` | a carried item fades out in some frames | redo (the builder already retried twice) |
+| `colours appear that the standing view does not have` | the model invented clothing, typically for body parts hidden in the standing view (legs behind a cape) | redo; if it repeats, add the missing part to `--desc` ("armoured legs") |
 | `the character changes size a lot` | walked towards / away from the camera | redo |
 | `left[0] does not face left ...` | colour heuristic on the 3-frame sheet | check by eye; pale hair, hats and helmets cause false alarms |
 | `turn_left: ... mirrored the other side view` | no clip turned that way | `--redo turn_left --variant n`, or accept for symmetric characters |

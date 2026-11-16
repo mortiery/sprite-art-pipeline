@@ -18,7 +18,7 @@ Q, F = PR.PROMPTS["qwen21"], PR.PROMPTS["flux3"]
 
 def main(out: str = "workflows") -> None:
     o = Path(out)
-    walk = PR.WALK_VIDEO.format(view=PR.VIDEO_VIEW["left"], bg="magenta", props="")
+    walk = PR.WALK_VIDEO.format(view=PR.VIDEO_VIEW["left"], bg="magenta", desc=DESC, props="")
     turn = PR.TURN_VIDEO.format(order=PR.TURN_ORDER["front_back"], bg="magenta", props="")
     neg = W.WAN_NEG + PR.WAN_NEG_EXTRA
     g = {

@@ -338,7 +338,7 @@ class Builder:
             if not self._need(stage):
                 continue
             start = self.c.upload_image(self.raw / f"stand_{d}.png", f"ccr_{s.name}_stand_{d}.png")
-            prompt = PR.WALK_VIDEO.format(view=PR.VIDEO_VIEW[d], bg=s.key, props=PR.props_sentence(s.props))
+            prompt = PR.WALK_VIDEO.format(view=PR.VIDEO_VIEW[d], bg=s.key, desc=s.desc, props=PR.props_sentence(s.props))
             tmp, best = self.raw / f"{stage}__tmp", None
             for attempt in range(s.max_retries + 1):
                 seed = self._seed(stage, 4000, attempt)
@@ -349,7 +349,7 @@ class Builder:
                 if best is None or score < best[0]:
                     self._keep_clip(files, tmp, stage)
                     best = (score, dict(seconds=round(time.time() - t, 1), seed=seed, problems=a["problems"],
-                                        cycle={k: a["cycle"][k] for k in ("start", "period", "seam", "head_error", "upper_lost")}))
+                                        cycle={k: a["cycle"][k] for k in ("start", "period", "seam", "head_error", "upper_lost", "new_colours")}))
                 if not a["problems"]:
                     break
             shutil.rmtree(tmp, ignore_errors=True)

@@ -60,7 +60,7 @@ def main():
         if a.end_dir:
             V.start_frame(ROOT / f"characters/{a.char}/raw/idle_{a.end_dir}.png", a.size).save(out / "end.png")
             end = c.upload_image(out / "end.png", f"wan_{a.char}_{a.end_dir}_{a.size}.png")
-        prompt = PROMPTS[a.prompt].format(view=a.view or (TURN[a.turn] if a.turn else VIEW[a.dir]), bg=a.bg, props="")
+        prompt = PROMPTS[a.prompt].format(view=a.view or (TURN[a.turn] if a.turn else VIEW[a.dir]), bg=a.bg, props="", desc="the character in the first frame")
         loras = [(n.rsplit(":", 1)[0], float(n.rsplit(":", 1)[1])) for n in a.lora]
         g = W.wan22_i2v(prompt, name, end=end, width=a.size, height=a.size, length=a.length,
                         seed=a.seed, fast=a.fast, steps=a.steps, cfg=a.cfg, shift=a.shift, loras=loras,

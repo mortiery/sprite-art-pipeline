@@ -94,7 +94,8 @@ WALK_VIDEO = ("2D anime game sprite animation. The small chibi character {view},
               "treadmill: a steady, even, looping walk cycle with clear steps, the legs alternate, the feet lift off "
               "the ground, the arms swing slightly, the body bobs a little with every step. The character stays "
               "exactly in the centre of the frame at the same size and keeps the same direction the whole time. "
-              "Everything the character carries stays where it is.{props} Fixed static camera, flat uniform {bg} "
+              "The character is {desc}; its outfit and colours stay exactly as in the first frame, also on parts "
+              "that become visible while walking. Everything the character carries stays where it is.{props} Fixed static camera, flat uniform {bg} "
               "background, no shadow, no floor.")
 # Side views: the clip is pinned to the front view and the back view (first and last frame); the model only
 # has to turn the character, and the side view is the middle of that turn. Wan ignores "turn to the left /

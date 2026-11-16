@@ -224,7 +224,9 @@
     },
     "seed": 11,
     "key_color": "magenta",
-    "variants": {},
+    "variants": {
+      "walk_left": 1
+    },
     "edit_model": "qwen21",
     "concept_model": "turbo",
     "pixel_style": "crisp",
@@ -258,22 +260,22 @@
       },
       "left": {
         "problems": [],
-        "cycle_start": 33,
+        "cycle_start": 21,
         "cycle_frames": 18,
-        "loop_jump": 0.0225,
+        "loop_jump": 0.0208,
         "frames_used": [
-          33,
-          35,
-          38,
-          40,
-          42,
-          44,
-          46,
-          49
+          21,
+          23,
+          26,
+          28,
+          30,
+          32,
+          34,
+          37
         ],
         "drift_removed_px": [
           2,
-          12
+          16
         ]
       },
       "right": {
@@ -360,14 +362,16 @@
       },
       "walk_left": {
         "attempts": 1,
-        "seconds": 222.3,
-        "seed": 4011,
+        "seconds": 220.9,
+        "seed": 11930,
         "problems": [],
         "cycle": {
-          "start": 33,
+          "start": 21,
           "period": 18,
-          "seam": 0.022509241476655006,
-          "head_error": 0.0219
+          "seam": 0.02077348344027996,
+          "head_error": 0.0427,
+          "upper_lost": 0.0,
+          "new_colours": 0.0127
         }
       },
       "walk_right": {
