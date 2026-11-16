@@ -1,0 +1,51 @@
+{
+  "1": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "wan_2.1_vae.safetensors"
+    }
+  },
+  "2": {
+    "class_type": "LoadLatent",
+    "inputs": {
+      "latent": "ccr/walk_left_latent_00001_.latent [output]"
+    }
+  },
+  "3": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "2",
+        0
+      ],
+      "vae": [
+        "1",
+        0
+      ]
+    }
+  },
+  "4": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "3",
+        0
+      ],
+      "filename_prefix": "walk_left"
+    }
+  },
+  "5": {
+    "class_type": "SaveAnimatedWEBP",
+    "inputs": {
+      "images": [
+        "3",
+        0
+      ],
+      "filename_prefix": "walk_left_anim",
+      "fps": 16,
+      "lossless": false,
+      "quality": 90,
+      "method": "default"
+    }
+  }
+}

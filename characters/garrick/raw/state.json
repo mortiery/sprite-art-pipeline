@@ -1,0 +1,101 @@
+{
+ "source": {
+  "tags": "1boy, solo, mature male, veteran knight, short grey hair, grey beard, scar across left eyebrow, steel plate armor, red cape, large greatsword on back, brown belt, armored boots, gauntlets",
+  "desc": "a burly veteran male knight with short grey hair, a grey beard and a scar across his left eyebrow, wearing steel plate armor with gauntlets and armored boots, a long red cape, a brown belt, and a large greatsword strapped to his back",
+  "seed": 11,
+  "props": "a large greatsword in a brown scabbard strapped diagonally across his back, its hilt sticking up above his right shoulder",
+  "notes": {
+   "back": "the greatsword in its scabbard lies diagonally across the back on top of the red cape; its whole length is visible, from the hilt above the right shoulder down to the tip near the left hip"
+  },
+  "key": "magenta"
+ },
+ "variants": {},
+ "stages": {
+  "chibi": {
+   "seconds": 110.1,
+   "attempts": 1,
+   "seed": 1011
+  },
+  "back": {
+   "seconds": 77.1,
+   "attempts": 1,
+   "seed": 2011,
+   "problems": []
+  },
+  "turn_right": {
+   "seconds": 101.5,
+   "seed": 5011,
+   "order": "front_back",
+   "frame": 28,
+   "body_width_vs_front": 0.629,
+   "problems": []
+  },
+  "turn_left": {
+   "seconds": 180.0,
+   "seed": 5011,
+   "order": "back_front",
+   "mirrored_input": true,
+   "frame": 17,
+   "problems": [],
+   "picked_by": "reviewer"
+  },
+  "walk_down": {
+   "attempts": 1,
+   "seconds": 126.6,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 28,
+    "period": 18,
+    "seam": 0.015834255144000053,
+    "head_error": 0.0207
+   }
+  },
+  "walk_left": {
+   "attempts": 1,
+   "seconds": 222.3,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 33,
+    "period": 18,
+    "seam": 0.022509241476655006,
+    "head_error": 0.0219
+   }
+  },
+  "walk_right": {
+   "attempts": 1,
+   "seconds": 228.7,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 52,
+    "period": 17,
+    "seam": 0.014290512539446354,
+    "head_error": 0.0261
+   }
+  },
+  "walk_up": {
+   "attempts": 1,
+   "seconds": 231.8,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 39,
+    "period": 20,
+    "seam": 0.03470519930124283,
+    "head_error": 0.0255
+   }
+  }
+ },
+ "approved": {
+  "views": {
+   "chibi": "03e4a7f22e1e207a04856105d2c1aceccf9c7e2f",
+   "back": "51f39f30d8089ad8025198f4d0d37e1c9ea94ab9"
+  },
+  "sides": {
+   "stand_left": "e31de5af5a63a41861e8c0a524a4b5702077e692",
+   "stand_right": "2ec09d92dc16cf2b864cc48024f5b92dc284885a"
+  }
+ }
+}

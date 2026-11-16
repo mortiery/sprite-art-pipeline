@@ -1,0 +1,19 @@
+{
+ "rin_left_fast": "First test. Real walk cycle with arm swing and scarf motion; 16-frame gait cycle found automatically. Slight colour bleed of the background into the boots in late frames.",
+ "rin_left_q": "Same start frame at full quality. Starts walking sooner, the loop closes more cleanly (jump 0.011 vs 0.018). Colours drift after frame 60 (brighter background, reddish boots) - the cycle is therefore taken as early as possible.",
+ "rin_down_fast": "Front view: legs alternate properly (the two half-cycles differ, ratio 3.4). The face is redrawn a little compared with the standing frame.",
+ "rin_up_fast": "Prompt said 'walking away from the viewer' and the model did exactly that - the character shrinks to 87 %. Zoom compensation (resize every frame until the head is as wide as in the standing frame) repairs it.",
+ "garrick_left_fast": "Armour and cape stay stable through the whole clip. No sword, because the start frame (side view from the Qwen turnaround) has none - the video keeps what the first frame shows, nothing more.",
+ "rin_up_fast2": "Reworded to 'marching on the spot without moving away': still recedes to 90 %, a strong habit of the model for back views. With zoom compensation the loop closes cleanly (jump 0.012) and the legs alternate.",
+ "selka_down_fast": "The staff stays in the same hand in all 81 frames and the hat keeps its shape - this is the prop defect of the frame-by-frame approach, gone. The walk itself is subtle because the robe hides most of the legs.",
+ "rin_down_q49": "NEGATIVE RESULT: 20 steps with CFG 3.5, 49 frames. The motion is livelier but irregular - more a hop than a walk, and the expression changes (mouth opens). No clean cycle. The 4-step clips are steadier and loop better.",
+ "rin_up_fast_flf": "BEST BACK VIEW: the standing frame is given as first AND last frame. Pinned at both ends the character cannot walk off: no zoom (0.996-1.004), the head stays identical (error 0.010), clean 16-frame cycle. This becomes the default for all directions.",
+ "rin_up_fast_follow": "Wording 'the camera follows behind at a constant distance': worse, the character shrinks to 79 %. Wording does not stop the receding; pinning the last frame does.",
+ "garrick_spin_fast": "Turntable from the front view only (full 360 degrees). The sword stays on the back through the whole turn - but the back is invented (odd scabbard block).",
+ "garrick_spin_flf": "Turntable pinned to the front view at both ends. Clean turn, but the invented back now has a satchel next to the sword. Conclusion: the back view must be given, not invented.",
+ "selka_spin_flf": "Same for Selka: the staff changes sides correctly in 3D, the invented back is plausible but not controlled.",
+ "rin_spin_flf": "Same for Rin.",
+ "garrick_half_left": "HALF TURN, first frame = front view, last frame = back view (old Qwen turnaround cells). Wan only fills in the turn; the middle is the side view. Prompt asked to turn left - it did.",
+ "garrick_half_right": "Same, but the prompt asked to turn RIGHT: it turned left again. The turn direction cannot be steered by wording.",
+ "selka_half_left": "Half turn for Selka: staff handled correctly (hidden behind the body when the holding hand is on the far side)."
+}

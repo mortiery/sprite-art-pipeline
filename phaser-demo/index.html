@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generated RPG characters - Phaser demo</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #14161c; color: #cfd3dc; font: 14px/1.4 system-ui, sans-serif; }
+  #wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; }
+  canvas { image-rendering: pixelated; border: 2px solid #2b2f3a; }
+  kbd { background: #2b2f3a; border-radius: 3px; padding: 1px 5px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="game"></div>
+  <div><kbd>Arrows</kbd> walk &nbsp; <kbd>Tab</kbd> switch hero &nbsp; <kbd>Space</kbd> talk / next emotion &nbsp; <kbd>Esc</kbd> close &nbsp;|&nbsp; <a href="?rm" style="color:#8ab4f8">3-frame RPG Maker walk</a> / <a href="?" style="color:#8ab4f8">smooth walk</a></div>
+</div>
+<script src="vendor/phaser.min.js"></script>
+<script type="module">
+import { fetchManifests, preloadCharacter, createAnimations, addCharacter, faceFrame } from './rpgchar.js';
+
+// characters/index.json lists the manifests:  ["rin/rin.json", "garrick/garrick.json", ...]
+const params = new URLSearchParams(location.search);
+const base = '../characters/';
+const index = await (await fetch(base + 'index.json')).json();
+const manifests = await fetchManifests(index.map((p) => base + p));
+const SHOT = params.has('shot');            // static showcase for automated screenshots
+const SMOOTH = !params.has('rm');           // ?rm = use the 3-frame RPG Maker sheet instead of the smooth walk
+const W = 480, H = 320, SPEED = 90;
+
+class Demo extends Phaser.Scene {
+  preload() { manifests.forEach((m) => preloadCharacter(this, m)); }
+
+  create() {
+    // simple grass + path backdrop drawn with graphics (no tileset needed)
+    const g = this.add.graphics();
+    for (let y = 0; y < H; y += 16) for (let x = 0; x < W; x += 16) {
+      const path = y >= 128 && y < 176;
+      const c = path ? ((x + y) % 32 ? 0xc9b182 : 0xbfa776) : ((x * 7 + y * 13) % 48 ? 0x5f9a4a : 0x569043);
+      g.fillStyle(c).fillRect(x, y, 16, 16);
+    }
+    manifests.forEach((m) => createAnimations(this, m));
+
+    this.chars = manifests.map((m, i) => {
+      const s = addCharacter(this, m, 80 + i * 110, 160, 1, SMOOTH);
+      s.manifest = m;
+      return s;
+    });
+    this.hero = 0;
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.input.keyboard.on('keydown-TAB', (e) => { e.preventDefault(); this.chars[this.hero].stop(); this.hero = (this.hero + 1) % this.chars.length; });
+    this.input.keyboard.on('keydown-SPACE', () => this.talk());
+    this.input.keyboard.on('keydown-ESC', () => this.box.setVisible(false));
+
+    // dialogue box
+    this.box = this.add.container(0, H - 100).setDepth(1000).setVisible(false);
+    const panel = this.add.graphics();
+    panel.fillStyle(0x10203a, 0.92).fillRect(6, 0, W - 12, 94);
+    panel.lineStyle(2, 0xe8e8f0, 1).strokeRect(6, 0, W - 12, 94);
+    // faces are 144 px with 2 px logical pixels -> show at exactly half size (72 px) so the grid stays even
+    this.face = this.add.image(16, 11, `${manifests[0].name}-faces`, 0).setOrigin(0).setDisplaySize(72, 72);
+    this.text = this.add.text(100, 12, '', { fontFamily: 'monospace', fontSize: '14px', color: '#ffffff', wordWrap: { width: W - 120 } });
+    this.box.add([panel, this.face, this.text]);
+    this.emotion = -1;
+
+    if (SHOT) this.showcase();
+  }
+
+  talk(index) {
+    const m = this.chars[this.hero].manifest;
+    const emotions = Object.keys(m.faces.frames);
+    this.emotion = index !== undefined ? index : (this.emotion + 1) % emotions.length;
+    const e = emotions[this.emotion];
+    this.face.setTexture(`${m.name}-faces`, faceFrame(m, e));
+    this.text.setText(`${m.name.toUpperCase()}\n(${e})  This face comes from frame ${faceFrame(m, e)} of ${m.faces.image}.`);
+    this.box.setVisible(true);
+  }
+
+  showcase() {
+    // every character in all four directions, plus one open dialogue box
+    this.chars.forEach((s) => s.setVisible(false));
+    manifests.forEach((m, i) => {
+      ['down', 'left', 'right', 'up'].forEach((d, j) => {
+        addCharacter(this, m, 60 + j * 56, 70 + i * 56, 1, SMOOTH).walk(d);
+        addCharacter(this, m, 300 + j * 44, 70 + i * 56, 1, SMOOTH).stop(d);
+      });
+    });
+    const n = Number(params.get('shot')) || 0;
+    this.hero = n % this.chars.length;
+    this.talk(Number(params.get('emotion')) || 0);
+  }
+
+  update(_, dt) {
+    if (SHOT) return;
+    const s = this.chars[this.hero], c = this.cursors, v = SPEED * dt / 1000;
+    let dir = null;
+    if (c.left.isDown) { s.x -= v; dir = 'left'; }
+    else if (c.right.isDown) { s.x += v; dir = 'right'; }
+    else if (c.up.isDown) { s.y -= v; dir = 'up'; }
+    else if (c.down.isDown) { s.y += v; dir = 'down'; }
+    s.x = Phaser.Math.Clamp(s.x, 16, W - 16);
+    s.y = Phaser.Math.Clamp(s.y, 48, H);
+    if (dir) s.walk(dir); else s.stop();
+    this.chars.forEach((ch) => ch.setDepth(ch.y));     // y-sort
+  }
+}
+
+window.game = new Phaser.Game({
+  type: Phaser.AUTO, parent: 'game', width: W, height: H, zoom: 2,
+  pixelArt: true, roundPixels: true, backgroundColor: '#5f9a4a', scene: Demo,
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+ "tag": "garrick_spin_fast",
+ "char": "garrick",
+ "dir": "down",
+ "prompt": "spin",
+ "fast": true,
+ "loop": false,
+ "size": 640,
+ "length": 81,
+ "seed": 11,
+ "steps": null,
+ "cfg": null,
+ "shift": null,
+ "bg": "magenta",
+ "frames": "3,4,6,8",
+ "view": null,
+ "lora": [],
+ "prompt_text": "2D anime game character turnaround animation. The small chibi character stands upright in a relaxed neutral pose with the arms at the sides and slowly rotates on the spot like a figure on a turntable: one full smooth 360 degree turn, showing the front, the side, the back, the other side and the front again. The pose does not change while turning. Everything the character wears and carries stays attached and is seen from every angle. The character stays exactly in the centre of the frame at the same size. Fixed static camera, flat uniform magenta background, no shadow, no floor.",
+ "seconds": 759.7
+}

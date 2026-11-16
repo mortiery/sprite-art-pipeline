@@ -1,0 +1,104 @@
+{
+ "source": {
+  "tags": "1girl, solo, young witch, long straight silver hair, violet eyes, large purple witch hat with gold band, purple robe with gold trim, white collar, black tights, short brown boots, holding wooden staff with blue crystal",
+  "desc": "a young witch with long straight silver hair and violet eyes, wearing a large purple witch hat with a gold band, a purple robe with gold trim and a white collar, black tights and short brown boots, holding a wooden staff topped with a blue crystal",
+  "seed": 11,
+  "props": "a wooden staff as tall as herself, topped with a blue crystal, held upright in her right hand",
+  "notes": {},
+  "key": "magenta"
+ },
+ "variants": {},
+ "stages": {
+  "chibi": {
+   "seconds": 138.3,
+   "attempts": 1,
+   "seed": 1011
+  },
+  "back": {
+   "seconds": 138.2,
+   "attempts": 3,
+   "seed": 2011,
+   "problems": [],
+   "note": "3 attempts because of a false alarm of the old face check (silver hair counted as skin); check fixed"
+  },
+  "turn_left": {
+   "seconds": 72.6,
+   "seed": 5162,
+   "order": "front_back",
+   "frame": 21,
+   "body_width_vs_front": 0.656,
+   "problems": [],
+   "note": "clips were filed under swapped sides by the first (skin-based) facing check; swapped back by hand",
+   "picked_by": "reviewer"
+  },
+  "turn_right": {
+   "seconds": 72.5,
+   "seed": 5011,
+   "order": "front_back",
+   "frame": 28,
+   "body_width_vs_front": 0.656,
+   "problems": [],
+   "note": "clips were filed under swapped sides by the first (skin-based) facing check; swapped back by hand",
+   "picked_by": "reviewer"
+  },
+  "walk_down": {
+   "attempts": 1,
+   "seconds": 231.4,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 19,
+    "period": 40,
+    "seam": 0.023447105661034584,
+    "head_error": 0.0287
+   }
+  },
+  "walk_left": {
+   "attempts": 3,
+   "seconds": 231.7,
+   "seed": 4213,
+   "problems": [],
+   "cycle": {
+    "start": 26,
+    "period": 29,
+    "seam": 0.03408053144812584,
+    "head_error": 0.0175,
+    "upper_lost": 0.0344
+   }
+  },
+  "walk_right": {
+   "attempts": 1,
+   "seconds": 194.0,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 20,
+    "period": 23,
+    "seam": 0.019652940332889557,
+    "head_error": 0.0111
+   }
+  },
+  "walk_up": {
+   "attempts": 1,
+   "seconds": 180.6,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 24,
+    "period": 27,
+    "seam": 0.01740357279777527,
+    "head_error": 0.0263
+   }
+  }
+ },
+ "approved": {
+  "views": {
+   "chibi": "4e0867b7640b840a44bbf218f62ca05b12835757",
+   "back": "3423e9401ed0bad8aa6873fe5374a8e97d90c0af"
+  },
+  "sides": {
+   "stand_left": "4a35fa782e94fc21e664c147176e1d121d4e533f",
+   "stand_right": "5208dba71746f988b5ae848383fa28dea96a017c"
+  }
+ }
+}

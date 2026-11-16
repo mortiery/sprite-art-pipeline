@@ -1,0 +1,19 @@
+{
+ "tag": "rin_left_fast",
+ "char": "rin",
+ "dir": "left",
+ "prompt": "treadmill",
+ "fast": true,
+ "loop": false,
+ "size": 640,
+ "length": 81,
+ "seed": 11,
+ "steps": null,
+ "cfg": null,
+ "shift": null,
+ "bg": "magenta",
+ "frames": "3,4,6,8",
+ "lora": [],
+ "prompt_text": "2D anime game sprite animation. The small chibi character in strict side view, in profile, facing left, walking to the left, walks on the spot like on a treadmill: a steady, even, looping walk cycle with clear steps, the legs alternate, the feet lift off the ground, the arms swing slightly, the body bobs a little with every step. The character stays exactly in the centre of the frame at the same size and keeps the same direction the whole time. Everything the character carries stays where it is. Fixed static camera, flat uniform magenta background, no shadow, no floor.",
+ "seconds": 130.2
+}

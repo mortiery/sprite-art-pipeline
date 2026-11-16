@@ -1,0 +1,101 @@
+{
+ "source": {
+  "tags": "1girl, solo, young adventurer, short messy red hair, green eyes, brown leather vest over white long-sleeved shirt, blue scarf, dark navy shorts, brown knee-high boots, brown leather gloves, belt with pouches",
+  "desc": "a young female adventurer with short messy red hair and green eyes, wearing a brown leather vest over a white long-sleeved shirt, a blue scarf around her neck, dark navy shorts, a belt with small pouches, brown leather gloves and brown knee-high boots",
+  "seed": 11,
+  "props": "",
+  "notes": {},
+  "key": "magenta"
+ },
+ "variants": {},
+ "stages": {
+  "chibi": {
+   "seconds": 137.4,
+   "attempts": 1,
+   "seed": 1011
+  },
+  "back": {
+   "seconds": 138.3,
+   "attempts": 1,
+   "seed": 2011,
+   "problems": []
+  },
+  "turn_left": {
+   "seconds": 72.3,
+   "seed": 5011,
+   "order": "front_back",
+   "mirrored_input": false,
+   "frame": 26,
+   "body_width_vs_front": 0.524,
+   "problems": []
+  },
+  "turn_right": {
+   "seconds": 74.3,
+   "seed": 5011,
+   "order": "front_back",
+   "mirrored_input": true,
+   "frame": 28,
+   "body_width_vs_front": 0.476,
+   "problems": [],
+   "picked_by": "reviewer"
+  },
+  "walk_down": {
+   "attempts": 1,
+   "seconds": 172.4,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 11,
+    "period": 15,
+    "seam": 0.017248764634132385,
+    "head_error": 0.0181
+   }
+  },
+  "walk_left": {
+   "attempts": 1,
+   "seconds": 179.0,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 29,
+    "period": 20,
+    "seam": 0.026880118995904922,
+    "head_error": 0.0186
+   }
+  },
+  "walk_right": {
+   "attempts": 1,
+   "seconds": 232.3,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 28,
+    "period": 11,
+    "seam": 0.03794150799512863,
+    "head_error": 0.0158
+   }
+  },
+  "walk_up": {
+   "attempts": 1,
+   "seconds": 241.2,
+   "seed": 4011,
+   "problems": [],
+   "cycle": {
+    "start": 27,
+    "period": 15,
+    "seam": 0.013069570064544678,
+    "head_error": 0.0084
+   }
+  }
+ },
+ "approved": {
+  "views": {
+   "chibi": "f1ad069ab67a1d0ec7bec5aabb5ab680ddef82f2",
+   "back": "e457425f0626156034eea95fcc9f510804388a68"
+  },
+  "sides": {
+   "stand_left": "0c0d1828b8495e8bb9099910e7b57a00ca9b1497",
+   "stand_right": "49b09d257e2163a1c2a4fee3fd8cfec7ea966f71"
+  }
+ }
+}

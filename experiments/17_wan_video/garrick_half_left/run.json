@@ -1,0 +1,22 @@
+{
+ "tag": "garrick_half_left",
+ "char": "garrick",
+ "dir": "down",
+ "prompt": "halfturn",
+ "fast": true,
+ "loop": false,
+ "size": 640,
+ "length": 49,
+ "seed": 11,
+ "steps": null,
+ "cfg": null,
+ "shift": null,
+ "bg": "magenta",
+ "frames": "3,4,6,8",
+ "end_dir": "up",
+ "turn": "left",
+ "view": null,
+ "lora": [],
+ "prompt_text": "2D anime game character turnaround animation. The small chibi character stands upright in a relaxed neutral pose with the arms at the sides and slowly turns around on the spot like a figure on a turntable: half a turn, from the front view to the back view. It turns towards the left side of the picture: halfway through the turn it is seen in profile, facing the left edge of the picture. The pose does not change while turning. Everything the character wears and carries stays attached, keeps its shape and is seen from every angle. The character stays exactly in the centre of the frame at the same size. Fixed static camera, flat uniform magenta background, no shadow, no floor.",
+ "seconds": 122.4
+}

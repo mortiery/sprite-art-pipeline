@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+*.log
+.idea/
+
+# raw video frames (26 MB per clip); the lossy .webp of every clip is kept
+characters/*/raw/walk_*/
+characters/*/raw/turn_*/
+experiments/17_wan_video/*/frames/
