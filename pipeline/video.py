@@ -317,17 +317,16 @@ def turn_profile(keyed: list[Image.Image]) -> dict:
     out = {"index": idx, "facing": facing, "shift": int(shift), "problems": []}
     if facing is None:
         out["problems"].append("could not tell which way the character turns")
-    f96 = [f.resize((96, 96), Image.BOX) for f in (keyed[0], keyed[-1])]
-    skin = S._skin_color(f96[0])
-    if skin is not None and S._skin_stats(f96[1], skin, 0.035)[0] > 0.4 * max(1, S._skin_stats(f96[0], skin, 0.035)[0]):
-        out["problems"].append("the last frame still shows a face: no back view")
+    # (no check of the last frame: it is the approved back view, pinned as input. A skin-colour test here once
+    #  mistook a beige headwrap for a face and threw away good clips - experiment 18, Kaela.)
     return out
 
 
 # ------------------------------------------------------------ one-call API ----
 def start_frames(views: dict[str, Image.Image], size: int = 640, fill: float = 0.74, max_width: float = 0.80,
-                 feet: float = 0.90) -> tuple[dict[str, Image.Image], dict]:
+                 feet: float = 0.90, scale: float | None = None) -> tuple[dict[str, Image.Image], dict]:
     """Standing views (flat key background, any size) -> square start frames for the video model.
+    `scale`: use this scale (meta["scale"] of an earlier call) instead of fitting, to add a view later.
     The views are brought to the same body size (measured around the head axis, so props do not count),
     scaled together to fit the frame, centred on the head axis and put on one perfectly flat background
     (the colour of the first view). Returns the frames and meta = {"cell": source pixels per sprite pixel}:
@@ -348,7 +347,7 @@ def start_frames(views: dict[str, Image.Image], size: int = 640, fill: float = 0
         info[d] = (keyed, box, rel, float(np.median(head)) + 0.5)
     fh = max((b[3] - b[1]) * r for _, b, r, _ in info.values())
     fw = max((b[2] - b[0]) * r for _, b, r, _ in info.values())
-    s = min(fill * size / fh, max_width * size / fw)
+    s = scale or min(fill * size / fh, max_width * size / fw)
     out = {}
     for d, (keyed, (x0, y0, x1, y1), rel, cx) in info.items():
         k = s * rel
@@ -359,7 +358,7 @@ def start_frames(views: dict[str, Image.Image], size: int = 640, fill: float = 0
         frame = Image.new("RGB", (size, size), bg)
         frame.paste(fig, (ox, round(size * feet) - h), fig)
         out[d] = frame
-    return out, {"cell": float(max(fh, fw) * s / 44), "size": size}
+    return out, {"cell": float(max(fh, fw) * s / 44), "size": size, "scale": float(s)}
 
 
 def missing_upper(standing: Image.Image, frame: Image.Image, n: int = 160, cut: float = 0.58) -> float:

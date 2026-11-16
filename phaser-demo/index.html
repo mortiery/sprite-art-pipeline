@@ -27,7 +27,7 @@ const index = await (await fetch(base + 'index.json')).json();
 const manifests = await fetchManifests(index.map((p) => base + p));
 const SHOT = params.has('shot');            // static showcase for automated screenshots
 const SMOOTH = !params.has('rm');           // ?rm = use the 3-frame RPG Maker sheet instead of the smooth walk
-const W = 480, H = 320, SPEED = 90;
+const W = 480, H = 360, SPEED = 90;
 
 class Demo extends Phaser.Scene {
   preload() { manifests.forEach((m) => preloadCharacter(this, m)); }
@@ -36,14 +36,14 @@ class Demo extends Phaser.Scene {
     // simple grass + path backdrop drawn with graphics (no tileset needed)
     const g = this.add.graphics();
     for (let y = 0; y < H; y += 16) for (let x = 0; x < W; x += 16) {
-      const path = y >= 128 && y < 176;
+      const path = y >= 144 && y < 192;
       const c = path ? ((x + y) % 32 ? 0xc9b182 : 0xbfa776) : ((x * 7 + y * 13) % 48 ? 0x5f9a4a : 0x569043);
       g.fillStyle(c).fillRect(x, y, 16, 16);
     }
     manifests.forEach((m) => createAnimations(this, m));
 
     this.chars = manifests.map((m, i) => {
-      const s = addCharacter(this, m, 80 + i * 110, 160, 1, SMOOTH);
+      const s = addCharacter(this, m, Math.round(W / (manifests.length + 1) * (i + 1)), 180, 1, SMOOTH);
       s.manifest = m;
       return s;
     });
@@ -82,8 +82,9 @@ class Demo extends Phaser.Scene {
     this.chars.forEach((s) => s.setVisible(false));
     manifests.forEach((m, i) => {
       ['down', 'left', 'right', 'up'].forEach((d, j) => {
-        addCharacter(this, m, 60 + j * 56, 70 + i * 56, 1, SMOOTH).walk(d);
-        addCharacter(this, m, 300 + j * 44, 70 + i * 56, 1, SMOOTH).stop(d);
+        const y = 56 + i * Math.min(48, 200 / manifests.length);
+        addCharacter(this, m, 60 + j * 52, y, 1, SMOOTH).walk(d);
+        addCharacter(this, m, 290 + j * 44, y, 1, SMOOTH).stop(d);
       });
     });
     const n = Number(params.get('shot')) || 0;

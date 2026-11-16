@@ -234,14 +234,14 @@
       "turn_right": 2,
       "walk_left": 2,
       "walk_up": 2,
-      "face_neutral": 1,
       "face_happy": 1,
       "face_angry": 1,
       "face_sad": 1,
       "face_surprised": 1,
       "face_embarrassed": 1,
       "face_determined": 1,
-      "face_hurt": 1
+      "face_hurt": 1,
+      "portrait": 1
     },
     "edit_model": "qwen21",
     "concept_model": "turbo",
@@ -251,7 +251,8 @@
   "qc": {
     "generated_walk": {
       "ok": true,
-      "problems": []
+      "problems": [],
+      "accepted_at_review": []
     },
     "walk_clips": {
       "down": {
@@ -428,11 +429,6 @@
           "new_colours": 0.0006
         }
       },
-      "face_neutral": {
-        "seconds": 67.3,
-        "attempts": 1,
-        "seed": 10926
-      },
       "face_happy": {
         "seconds": 19.0,
         "attempts": 1,
@@ -467,6 +463,16 @@
         "seconds": 68.1,
         "attempts": 1,
         "seed": 10926
+      },
+      "portrait": {
+        "seconds": 67.3,
+        "attempts": 1,
+        "seed": 10926
+      },
+      "face_neutral": {
+        "seconds": 134.3,
+        "attempts": 1,
+        "seed": 3007
       }
     },
     "approved": [

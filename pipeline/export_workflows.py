@@ -31,6 +31,9 @@ def main(out: str = "workflows") -> None:
         # images and say "from the back view to the front view" for the other half of the turn
         "04_turn_clip_wan22": W.wan22_i2v(turn, "STAND_DOWN.png", end="STAND_UP.png", width=640, height=640, length=49,
                                           seed=5001, fast=True, negative=neg, prefix="turn"),
+        # fallback for a side no turn clip shows: the edit model draws it from front and back view
+        "04b_side_view_qwen21": W.qwen21_edit(Q["side"].format(FACING="RIGHT", facing="right", desc=DESC, props="", note="",
+                                                                bg=BG), ["CHIBI.png", "BACK.png"], seed=5501, prefix="side_right"),
         # walk: the standing view is first and last frame
         "05_walk_clip_wan22": W.wan22_i2v(walk, "STAND_LEFT.png", end="STAND_LEFT.png", width=640, height=640, length=81,
                                           seed=4001, fast=True, negative=neg, prefix="walk_left"),

@@ -1,0 +1,177 @@
+{
+ "source": {
+  "tags": "1girl, solo, tall female, serious, desert guard, dark skin, dark-skinned female, short hair, black hair, sand-colored headwrap, head scarf, headwrap tail over left shoulder, golden brown eyes, light leather breastplate, white tunic, long rust-red cloak, hooded cloak, hood down, baggy beige pants, pants tucked into boots, brown boots, holding spear, long spear held upright in right hand, round bronze shield on left forearm",
+  "desc": "a tall, serious young desert guard woman with dark brown skin, short black hair under a sand-coloured headwrap whose loose end hangs over her left shoulder, golden-brown eyes, wearing a light leather breastplate over a white tunic, a long rust-red hooded cloak and baggy beige trousers tucked into brown boots, holding a long spear upright in her right hand, with a round bronze shield strapped to her left forearm",
+  "seed": 23,
+  "props": "a long spear, taller than herself, held upright in her right hand; a round bronze shield strapped to the outside of her left forearm; the loose end of her sand-coloured headwrap hanging down over her left shoulder",
+  "notes": {
+   "turn_right": "from this side her shield cannot be seen at all, it is hidden behind her body; she holds the spear upright in her right hand in front of her; her left arm is not visible"
+  },
+  "key": "magenta"
+ },
+ "variants": {
+  "turn_right": 5,
+  "walk_right": 2
+ },
+ "stages": {
+  "concept": {
+   "seconds": 6.0,
+   "attempts": 1,
+   "seed": 23,
+   "model": "turbo",
+   "figures": 1
+  },
+  "chibi": {
+   "seconds": 139.4,
+   "attempts": 1,
+   "seed": 1023
+  },
+  "back": {
+   "seconds": 68.4,
+   "attempts": 1,
+   "seed": 2023,
+   "problems": [
+    "may show a face (191 pixels of skin colour (220, 196, 172) in the head area, front view has 211) - colour heuristic, check by eye"
+   ]
+  },
+  "turn_left": {
+   "seconds": 74.2,
+   "seed": 5023,
+   "order": "front_back",
+   "mirrored_input": false,
+   "frame": 25,
+   "problems": [],
+   "picked_by": "reviewer"
+  },
+  "turn_right": {
+   "seconds": 111.5,
+   "seed": 45118,
+   "source": "edit",
+   "tries": [
+    "earlier clips did not show this side"
+   ],
+   "problems": [
+    "no turn clip showed this side (1 tried, previews in raw/turn_tries/); drawn by the image edit model instead - check facing and items carefully"
+   ]
+  },
+  "walk_down": {
+   "attempts": 3,
+   "seconds": 138.7,
+   "seed": 4225,
+   "problems": [],
+   "cycle": {
+    "start": 32,
+    "period": 23,
+    "seam": 0.02677050232887268,
+    "head_error": 0.0402,
+    "upper_lost": 0.0013,
+    "new_colours": 0.0003
+   }
+  },
+  "walk_left": {
+   "attempts": 2,
+   "seconds": 122.5,
+   "seed": 4124,
+   "problems": [],
+   "cycle": {
+    "start": 28,
+    "period": 17,
+    "seam": 0.01646215096116066,
+    "head_error": 0.0546,
+    "upper_lost": 0.0088,
+    "new_colours": 0.0019
+   }
+  },
+  "walk_right": {
+   "attempts": 1,
+   "tries": [
+    {
+     "seed": 19861,
+     "problems": []
+    }
+   ],
+   "seconds": 129.5,
+   "seed": 19861,
+   "problems": [],
+   "cycle": {
+    "start": 33,
+    "period": 21,
+    "seam": 0.028274908661842346,
+    "head_error": 0.0739,
+    "upper_lost": 0.0173,
+    "new_colours": 0.0026
+   }
+  },
+  "walk_up": {
+   "attempts": 1,
+   "seconds": 123.9,
+   "seed": 4023,
+   "problems": [],
+   "cycle": {
+    "start": 40,
+    "period": 22,
+    "seam": 0.03409568592905998,
+    "head_error": 0.0466,
+    "upper_lost": 0.0004,
+    "new_colours": 0.001
+   }
+  },
+  "face_happy": {
+   "seconds": 133.3,
+   "attempts": 1,
+   "seed": 3023
+  },
+  "face_angry": {
+   "seconds": 66.1,
+   "attempts": 1,
+   "seed": 3023
+  },
+  "face_sad": {
+   "seconds": 66.1,
+   "attempts": 1,
+   "seed": 3023
+  },
+  "face_surprised": {
+   "seconds": 66.1,
+   "attempts": 1,
+   "seed": 3023
+  },
+  "face_embarrassed": {
+   "seconds": 66.1,
+   "attempts": 1,
+   "seed": 3023
+  },
+  "face_determined": {
+   "seconds": 66.4,
+   "attempts": 1,
+   "seed": 3023
+  },
+  "face_hurt": {
+   "seconds": 66.1,
+   "attempts": 1,
+   "seed": 3023
+  },
+  "portrait": {
+   "seconds": 66.1,
+   "attempts": 1,
+   "seed": 3023
+  },
+  "face_neutral": {
+   "seconds": 132.1,
+   "attempts": 1,
+   "seed": 3023
+  }
+ },
+ "approved": {
+  "views": {
+   "chibi": "2ee642c04cb86615c64f3b977515c3bf68e7bff0",
+   "back": "4be8c9e885653d14bb0b0eb07867a751e36dcad0"
+  },
+  "sides": {
+   "stand_left": "de3e599a96e558e6824d658eb227f4e4d6773d46",
+   "stand_right": "1f3f4a0233e6ff85eeec0a4cf87099145445625b"
+  }
+ },
+ "pending": [],
+ "look": {}
+}

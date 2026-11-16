@@ -234,7 +234,8 @@
       "problems": [
         "walk_down: no clear step rhythm (legs hidden by long clothing, or the model shuffled): the cycle length is a guess - check the GIF or the frames by eye",
         "walk_left: no clear step rhythm (legs hidden by long clothing, or the model shuffled): the cycle length is a guess - check the GIF or the frames by eye"
-      ]
+      ],
+      "accepted_at_review": []
     },
     "walk_clips": {
       "down": {
@@ -403,6 +404,11 @@
           "seam": 0.01740357279777527,
           "head_error": 0.0263
         }
+      },
+      "face_neutral": {
+        "seconds": 134.4,
+        "attempts": 1,
+        "seed": 3011
       }
     },
     "approved": [

@@ -314,6 +314,46 @@ floated beside the backpack instead of hanging from it, and replaced both automa
 | side-view strips too small to judge, frame order unclear | strip titles say which way the turn runs; the checklist points to the full-size frames; flat items looking thin from the side is stated as correct |
 | guide gaps: picture side vs. character side, `--note` only for `chibi`/`back`, how to judge a walk from stills, walk speed, timings, face framing | rewritten sections in the agent guide |
 
+**Round 2 - Kaela** (dark-skinned desert guard, spear in the right hand, round shield on the left forearm,
+headwrap with a tail over the left shoulder; seed 23). Front and back approved on the first take (spear,
+shield and headwrap tail on the correct sides in both). The subagent replaced the automatic left frame (27,
+nearly a back view) with frame 25. Findings:
+
+| Finding | Fix |
+|---|---|
+| right side view impossible: in 18 turn clips (all four combinations of order and flipped input) the model always showed her left (shield) side; the pipeline mirrored the left view, putting the shield on the wrong arm and hiding the spear | experiment 19: the image edit model draws a missing side view from front + back view; reviewed at the `sides` gate |
+| two of the failed clips had been thrown away by a "last frame still shows a face" check that took her beige headwrap for skin | check removed - the last frame of a turn is the approved back view itself |
+| "back may show a face": false alarm again (headwrap; for Tobi the blanket roll); widening the colour range to darker skin turns red hair into "skin" | the colour face check is gone; the reviewer checks it |
+| `problems` mixed open defects, already-approved gate warnings and six retry-log lines per turn | `problems` = open defects; approved warnings under `accepted_at_review`; retry reasons in `state.json` (`tries`); previews of rejected turn clips in `raw/turn_tries/` |
+| no progress output during 30-minute runs | one line per generation on stderr |
+| `--pick` on a mirrored or drawn side failed with a cryptic message | explains that the view was drawn and how to retake it |
+| checklist "arms at the sides" contradicts a held spear; tag phrasing unclear; `--pick` + `--redo` | wording fixed in the checklist and the guide |
+| a thin spear blinking in the right walk was not caught by the vanishing-item check | root cause was the mirrored standing view (spear hidden); not addressed in the check |
+
+**Neutral face looked softer than the other seven** (noticed by the user). The neutral tile was the portrait
+itself, one edit away from the concept; every other emotion was an edit of it and came out with cleaner,
+darker lines. Now `portrait` is only the shared reference and all eight tiles, neutral included, are
+expression edits of it. Existing characters were migrated (old neutral face -> `portrait`, neutral tile
+regenerated).
+
+## 19 - side views drawn by the edit model (fallback)
+
+`experiments/19_side_from_edit/`. Qwen-Image 2.1 with two references (front view, back view) and a prompt
+for a strict profile facing a given side, with "the character's RIGHT side faces the viewer: what is held or
+worn on that side is in front of the body, what is on the other side is mostly hidden".
+
+| Take | Result |
+|---|---|
+| seed 1 (test) | clean right profile, spear in front, shield hidden on the far side - correct |
+| seed 2 (test) | profile, but the shield on the visible side and the spear in the far hand - wrong |
+| pipeline take 1 | correct facing and spear; shield drawn flat across the chest |
+| pipeline take 2, note "the shield is behind her body, only a sliver of its rim may show" | two shields |
+| pipeline take 3, note "from this side her shield cannot be seen at all" | one shield, at her back, spear correct - accepted |
+
+The edit model gets facing and the held item right, but tends to keep every listed item visible. Mentioning
+the far-side item, even to hide it, makes it more likely to appear. Good enough as a fallback behind a review
+gate; clips stay the first choice because they keep the exact look of front and back.
+
 ## Negative results worth knowing
 
 - **Wan 2.2 with 20 steps and CFG** for walk cycles: slower and worse than the 4-step LoRA (17).

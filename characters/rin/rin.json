@@ -231,7 +231,8 @@
   "qc": {
     "generated_walk": {
       "ok": true,
-      "problems": []
+      "problems": [],
+      "accepted_at_review": []
     },
     "walk_clips": {
       "down": {
@@ -393,6 +394,11 @@
           "seam": 0.013069570064544678,
           "head_error": 0.0084
         }
+      },
+      "face_neutral": {
+        "seconds": 132.1,
+        "attempts": 1,
+        "seed": 3011
       }
     },
     "approved": [

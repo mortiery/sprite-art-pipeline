@@ -51,6 +51,13 @@ PROMPTS = {
                  "an item worn on the back is fully visible. Nothing is mirrored: whatever is on the character's right-hand "
                  "side appears on the right side of this picture. Nothing is added that the character does not have.{note} "
                  "Same chibi proportions, colours and art style. " + STYLE + " " + KEYED),
+        # refs: [front view, back view] -> one side view; fallback when no turn clip shows that side
+        "side": ("Redraw the chibi character from <image1> in a strict side view, in profile, facing {FACING}: the nose "
+                 "points to the {facing} edge of the picture and only one eye is visible. <image2> shows the same character "
+                 "from behind. Same standing pose, same size and same position in the picture, arms hanging down. The "
+                 "character's {FACING} side faces the viewer: what is held or worn on that side is in front of the body, "
+                 "what is on the other side is mostly hidden behind the body. The character is {desc}.{props} Nothing is "
+                 "mirrored and nothing is added.{note} Same chibi proportions, colours and art style. " + STYLE + " " + KEYED),
         # refs: [concept]
         "portrait": ("Redraw the character in the image as a face portrait for an RPG dialogue box: a tight head-and-shoulders "
                      "close-up, facing the viewer, head upright and centred. The head is large and fills most of the frame; the "

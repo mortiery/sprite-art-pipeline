@@ -148,56 +148,6 @@ def frames_preview(frames: dict[str, list[Image.Image]], scale: int = 4, bg=(88,
 
 # ------------------------------------------------------------------ walk animation helpers ----
 
-def _figure(frame: Image.Image):
-    a = np.asarray(frame.getchannel("A")) >= 128
-    b = _bbox(a)
-    if b is None:
-        return a, None, 0.0
-    x0, y0, x1, y1 = b
-    top = a[y0:y0 + max(1, int((y1 - y0) * 0.45))]
-    xs = np.where(top)[1]
-    return a, b, (float(np.median(xs)) + 0.5 if len(xs) else (x0 + x1) / 2)
-
-
-def _skin_color(front_idle: Image.Image):
-    """Skin colour of a front-view sprite: the most frequent light, peach-hued colour in the upper 60 %, in a
-    band of +-12 % of the figure height around the head axis.
-    The hue window excludes silver/white hair (too little yellow) and gold trim (too yellow)."""
-    a, b, cx = _figure(front_idle)
-    if b is None:
-        return None
-    x0, y0, x1, y1 = b
-    # only a band around the head axis: things worn behind the head (a blanket roll on a backpack, a hat brim)
-    # stick out sideways, the face does not
-    half = max(2, int((y1 - y0) * 0.12))
-    arr = np.asarray(front_idle)[y0:y0 + int((y1 - y0) * 0.6), max(0, int(cx) - half):int(cx) + half].reshape(-1, 4)
-    px = arr[arr[:, 3] > 0][:, :3]
-    if len(px) == 0:
-        return None
-    cols, cnt = np.unique(px // 8 * 8 + 4, axis=0, return_counts=True)
-    lab = P.rgb_to_oklab(cols.astype(np.float32) / 255.0)
-    hue = np.degrees(np.arctan2(lab[:, 2], lab[:, 1]))
-    ok = (lab[:, 0] > 0.6) & (lab[:, 1] > 0.006) & (lab[:, 2] > 0.012) & (lab[:, 2] < 0.075) & (hue > 25) & (hue < 76)
-    if not ok.any() or cnt[ok].max() < 4:
-        return None
-    return cols[ok][cnt[ok].argmax()].astype(np.uint8)
-
-
-def _skin_stats(frame: Image.Image, skin, tol: float = 0.07, head: float = 0.55) -> tuple[int, float]:
-    """(number of skin pixels in the head area, their mean x offset from the head centre in px).
-    tol = colour distance in OKLab; 0.07 survives palette reduction, 0.035 separates pale skin from silver hair."""
-    a, b, cx = _figure(frame)
-    if b is None:
-        return 0, 0.0
-    x0, y0, x1, y1 = b
-    arr = np.asarray(frame)[y0:y0 + int((y1 - y0) * head)]
-    lab = P.rgb_to_oklab(arr[..., :3].astype(np.float32) / 255.0)
-    m = (np.sqrt(((lab - P.rgb_to_oklab(skin.astype(np.float32) / 255.0)) ** 2).sum(-1)) < tol) & (arr[..., 3] > 0)
-    n = int(m.sum())
-    if n == 0:
-        return 0, 0.0
-    return n, float(np.where(m)[1].mean() - cx)
-
 
 def count_figures(img: Image.Image, min_gap: float = 0.03, min_share: float = 0.2) -> int:
     """How many separate figures stand side by side on a flat background (concept QC: we want exactly 1)."""

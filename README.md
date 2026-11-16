@@ -52,8 +52,9 @@ guide). `--review none` skips the gates for unattended runs.
                     |                                              key, stabilise, find one gait cycle, pixelise
                     |                                                       -> name_walk.png (3x4)  name_walk8.png (9x4)
                     |
-                    +-> 6 NEUTRAL FACE -> 7 EMOTIONS (x7) -> key, crop, pixelise -> name_faces.png
-                        Qwen 2.1          Qwen 2.1, edited from the neutral face     576x288
+                    +-> 6 PORTRAIT -> 7 FACES (x8) -> key, crop, pixelise -> name_faces.png
+                        Qwen 2.1      Qwen 2.1, every expression (neutral too)      576x288
+                                      edited from the portrait
 ```
 
 | # | Stage (`--redo` name) | Model | Input | Key settings |
@@ -62,11 +63,11 @@ guide). `--review none` skips the gates for unattended runs.
 | 2 | `chibi` | Qwen-Image 2.1 base | concept | 25 steps, CFG 1, `euler`/`simple`, 1024x1024, chroma-key background; this is the front standing view |
 | 3 | `back` | Qwen-Image 2.1 base | chibi | same; retried while it still shows a face |
 | - | **review `views`** | human or vision model | front + back | checklist: items present, on the correct side, nothing invented |
-| 4 | `turn_left`, `turn_right` | Wan 2.2 I2V 14B + 4-step LoRA | front view = first frame, back view = last frame | 640x640, 49 frames, 4 steps, CFG 1, shift 5; the side view is the frame in the middle of the turn |
+| 4 | `turn_left`, `turn_right` | Wan 2.2 I2V 14B + 4-step LoRA | front view = first frame, back view = last frame | 640x640, 49 frames, 4 steps, CFG 1, shift 5; the side view is the frame in the middle of the turn. Fallback when no clip turns that way: Qwen 2.1 draws the side view from front + back |
 | - | **review `sides`** | human or vision model | side views + neighbouring frames | may pick another frame (`--pick left=28`) |
 | 5 | `walk_down/left/right/up` | Wan 2.2 I2V 14B + 4-step LoRA | standing view = first **and** last frame | 640x640, 81 frames at 16 fps; a gait cycle is found and cut out automatically |
-| 6 | `face_neutral` | Qwen-Image 2.1 base | concept | 1024x1024 tight head-and-shoulders, chroma-key background |
-| 7 | `face_<emotion>` | Qwen-Image 2.1 base | neutral face | "Change the facial expression: ... keep everything else unchanged" |
+| 6 | `portrait` | Qwen-Image 2.1 base | concept | 1024x1024 tight head-and-shoulders, chroma-key background; the reference for all faces |
+| 7 | `face_<emotion>` | Qwen-Image 2.1 base | portrait | "Change the facial expression: ... keep everything else unchanged"; neutral included, so all tiles have the same line quality |
 | 8 | post-processing (`--post-only`) | Python (Pillow + numpy) | raw images and clips | chroma key -> size and position lock -> gait cycle -> grid downscale -> shared 64-colour palette -> sheets + manifest |
 
 ### Why it is built this way
@@ -174,7 +175,9 @@ See the end of [docs/02-experiments.md](docs/02-experiments.md) for negative res
   have, and the walk prompt carries the character description.
 - Which way the model turns cannot be prompted. The other side is obtained by feeding left-right flipped
   pictures and flipping the result back; this worked on the first try for Rin, but it is a habit of the model,
-  not a guarantee - the pipeline retries and, as a last resort, mirrors the side view it has (flagged).
+  not a guarantee. For Kaela (shield on one arm) no clip in twelve showed her right side; the image edit model
+  then draws that side view from front and back, and the reviewer judges it. Far-side items are its weak
+  point (the shield tends to stay visible).
 - The 4-step LoRA gives a steadier, more regular walk than 20 full steps (which hop and change the face), but
   the motion is modest; long robes hide most of it.
 - Stock RPG Maker characters are about two heads tall; generated chibis come out at about 2.3-2.6 heads.

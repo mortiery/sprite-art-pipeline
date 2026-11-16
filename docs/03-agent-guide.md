@@ -17,7 +17,10 @@ python3 -m pipeline.character --name selka --seed 11 \
 ```
 
 - `--tags`: danbooru-style tags for the concept image (Anima). Start with `1girl` / `1boy`, then hair, eyes,
-  outfit from top to bottom, carried items. Lowercase, comma separated.
+  outfit from top to bottom, carried items. Lowercase, comma separated, short (2-4 words each, e.g.
+  `holding spear`, `round shield`, `dark skin`); details like "hangs over the left shoulder" go into `--desc`
+  and `--props`, which steer every later picture. The concept may miss such details - check them at the
+  `views` gate.
 - `--desc`: the same character as **one prose sentence** starting with "a ...". It is pasted into the edit
   prompts.
 - `--props`: everything the character carries, with **where** it is: which hand, which shoulder, "across the
@@ -59,7 +62,7 @@ python3 -m pipeline.character --name selka --redo chibi \
 - Give up after about three takes of the same stage and approve the best one, writing down what is wrong; the
   video stages repeat whatever the pictures show.
 
-### `"status": "review_needed", "gate": "sides"`  (about 3 more minutes)
+### `"status": "review_needed", "gate": "sides"`  (about 3 more minutes; up to 15 when the model will not turn one way)
 
 The side views are frames from two short videos in which the character turns from the approved front view to
 the approved back view. Open `selka_review_sides.png`: the top row shows front, left, right, back; below are
@@ -72,7 +75,14 @@ strips with the frames around each chosen side view, numbered, with the directio
   `--pick left=25 --pick right=27`.
 - An item on the far side is correctly hidden by the body; a flat item (backpack, shield) looks thin from the
   side. A half-transparent, smeared or "held" item that should hang is a defect - pick another frame.
-- If a side is wrong altogether (`automatic_warnings` says it was mirrored): `--redo turn_left`.
+- If a side is wrong altogether: `--redo turn_left` (a new turn clip).
+- For some one-sided characters (a shield on one arm) the video model only ever turns one way. The builder
+  then tries up to six clips and lets the image edit model **draw** the missing side view from front and back
+  (`automatic_warnings`: "drawn by the image edit model"). Such a view has no frames, so `--pick` does not
+  apply; retake it with `--redo turn_right`, steered with `--note turn_right="..."`. Items on the far side are
+  hard for the model ("hidden behind the body" still often shows them) - accept a near miss that reads
+  correctly at 48 px rather than a mirrored view.
+- `--pick` and `--redo` can be given in one call; the pick is applied first.
 
 ```bash
 python3 -m pipeline.character --name selka --pick left=21 --approve sides
@@ -99,7 +109,9 @@ characters/selka/
 
 Check, in this order:
 
-1. `problems` in the printed JSON.
+1. `problems` in the printed JSON: open defects only. Warnings about views you approved at a gate are listed
+   separately under `qc.generated_walk.accepted_at_review` in the manifest; the reasons for every retry are in
+   `raw/state.json` (`stages.<stage>.tries`), previews of rejected turn clips in `raw/turn_tries/`.
 2. `<name>_walk_review.png`: in every row the legs alternate, items stay where they are, the colours stay the
    same. If you cannot watch the GIFs, judge the loop from the stills: the last frame of a row should lead
    back into the first one. The full-size frames are in `raw/walk_<dir>/`; the manifest's
@@ -107,7 +119,7 @@ Check, in this order:
 3. The walk speed: `walkAnim.animations.walk-<dir>.frameRate` should be similar for all four directions
    (6-9 fps for normal clips). A direction at about half the others means two cycles were taken as one.
 4. `<name>_faces.png`: every expression distinct; nothing important cut off at the top (ears, hat, horns).
-   If it is: `--post-only --face-zoom 1.0` (more of the portrait), or `--redo face_neutral` (new portraits, all
+   If it is: `--post-only --face-zoom 1.0` (more of the portrait), or `--redo portrait` (new portraits, all
    emotions follow).
 
 The character is registered in `characters/index.json`, which the Phaser demo reads.
@@ -120,9 +132,12 @@ python3 -m pipeline.character --name selka --redo face_angry         # one face
 python3 -m pipeline.character --name selka --post-only --pixel-style smooth   # only slicing / pixelising (seconds, no GPU)
 ```
 
-Stages: `concept chibi back turn_left turn_right walk_down walk_left walk_right walk_up face_<emotion>`.
+Stages: `concept chibi back turn_left turn_right walk_down walk_left walk_right walk_up portrait face_<emotion>`.
+Progress is printed on stderr (one line per generation); the JSON result on stdout.
 Redoing a stage redoes what is derived from it (`chibi` -> `back` -> turns and walks; `turn_left` -> `walk_left`;
-`face_neutral` -> all faces) and invalidates the approval of a gate whose pictures changed.
+`portrait` -> all faces) and invalidates the approval of a gate whose pictures changed. `portrait` is the
+head-and-shoulders picture all eight faces are edited from (the neutral face too, so all tiles get the same
+line quality); it is not shown itself.
 
 `problems` comes from automatic checks and can be wrong in both directions; the eyes decide. The builder
 already retried twice before reporting a walk problem.
@@ -136,7 +151,7 @@ already retried twice before reporting a walk problem.
 | `part of the figure above the waist disappears` | a carried item fades out in some frames | redo |
 | `colours appear that the standing view does not have` | the model invented clothing, typically for body parts hidden in the standing view (legs behind a cape) | redo; if it repeats, add the missing part to `--desc` ("armoured legs") |
 | `the character changes size a lot` | walked towards / away from the camera | redo |
-| `turn_left: ... mirrored the other side view` | no clip turned that way | `--redo turn_left`, or accept for symmetric characters |
+| `turn_right: no turn clip showed this side ... drawn by the image edit model` | see the `sides` gate above | check it there; retake with `--redo turn_right --note turn_right="..."` |
 
 Useful switches: `--review none` (no gates, for batches), `--pixel-style crisp|smooth|classic`,
 `--face-style lines|smooth|crisp`, `--face-zoom 0.9`, `--colors 64`, `--face-grid 1|2|3`, `--walk-frames 8`
@@ -209,7 +224,7 @@ from pipeline import workflows as W, prompts as PR
 c = Comfy()
 
 # an extra expression from an existing neutral face
-ref = c.upload_image("characters/rin/raw/face_neutral.png", "rin_neutral.png")
+ref = c.upload_image("characters/rin/raw/portrait.png", "rin_portrait.png")
 graph = W.qwen21_edit(PR.PROMPTS["qwen21"]["expression"].format(expression="smug, half-closed eyes, one corner of the mouth raised"), [ref])
 files = c.run(graph, "out/")          # -> [PosixPath('out/....png')]
 

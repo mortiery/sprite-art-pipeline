@@ -86,6 +86,11 @@
     "seam": 0.013069570064544678,
     "head_error": 0.0084
    }
+  },
+  "face_neutral": {
+   "seconds": 132.1,
+   "attempts": 1,
+   "seed": 3011
   }
  },
  "approved": {

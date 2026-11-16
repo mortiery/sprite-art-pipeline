@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import sys
 import json
 import shutil
 import time
@@ -87,10 +88,22 @@ class Builder:
         self.raw = self.out / "raw"
         self.raw.mkdir(parents=True, exist_ok=True)
         self.redo: set[str] = set()
-        self.state = {"source": {}, "variants": {}, "stages": {}, "approved": {}}
+        self.state = {"source": {}, "variants": {}, "stages": {}, "approved": {}, "pending": []}
         sp = self.raw / "state.json"
         if sp.exists():
             self.state.update(json.loads(sp.read_text()))
+        if (self.raw / "face_neutral.png").exists() and not (self.raw / "portrait.png").exists():
+            # built before the portrait stage: the old neutral face is the portrait; the neutral tile is made anew
+            (self.raw / "face_neutral.png").rename(self.raw / "portrait.png")
+            for key in ("stages", "variants"):
+                if "face_neutral" in self.state[key]:
+                    self.state[key]["portrait"] = self.state[key].pop("face_neutral")
+        # stages still to be redone from an earlier call that stopped at a review gate
+        self.redo = set(self.state.get("pending", []))
+
+    def _log(self, msg: str) -> None:
+        """Progress on stderr (the JSON result goes to stdout)."""
+        print(f"[{time.strftime('%H:%M:%S')}] {self.s.name}: {msg}", file=sys.stderr, flush=True)
 
     # ---- state --------------------------------------------------------------
     def save_state(self) -> None:
@@ -103,7 +116,7 @@ class Builder:
         redo = set(stages)
         walks, faces = {f"walk_{d}" for d in sheets.DIRS}, {f"face_{e}" for e in self.s.emotions}
         if "concept" in redo:
-            redo |= {"chibi", "face_neutral"}
+            redo |= {"chibi", "portrait"}
         if "chibi" in redo:
             redo |= {"back"}
         if "back" in redo:
@@ -111,16 +124,17 @@ class Builder:
         for side in SIDES:
             if f"turn_{side}" in redo:
                 redo |= {f"walk_{side}"}
-        if "face_neutral" in redo:
+        if "portrait" in redo:
             redo |= faces
-        unknown = redo - ({"concept", "chibi", "back", "turn_left", "turn_right", "face_neutral"} | walks | faces)
+        unknown = redo - ({"concept", "chibi", "back", "turn_left", "turn_right", "portrait"} | walks | faces)
         if unknown:
             raise SystemExit(f"unknown stage(s): {', '.join(sorted(unknown))}")
-        self.redo = redo
+        self.redo = self.redo | redo
+        self.state["pending"] = sorted(self.redo)
         for st in stages:                                   # a new take only for the stages named explicitly;
             old = self.state["variants"].get(st, 0)          # derived stages keep their seeds (their input changed)
             self.state["variants"][st] = old + 1 if variant is None else variant
-            if variant is not None and variant == old and st not in ("concept",) and not st.startswith("face_neutral"):
+            if variant is not None and variant == old:
                 print(f"[note] {st} already used variant {variant}: same seed as before", flush=True)
 
     def _seed(self, stage: str, base: int, attempt: int = 0) -> int:
@@ -138,11 +152,13 @@ class Builder:
 
     def _done(self, stage: str, **info) -> None:
         self.redo.discard(stage)
+        self.state["pending"] = sorted(self.redo)
         self.state["stages"][stage] = info
         self.save_state()
 
     # ---- image stages ---------------------------------------------------------
     def _gen(self, stage: str, graph, seed: int, attempt: int = 0, **info) -> Image.Image:
+        self._log(f"{stage} (seed {seed}) ...")
         t = time.time()
         tmp = self.c.run(graph, self.raw, stem=f"{stage}__tmp")[0]
         dst = self.raw / f"{stage}.png"
@@ -156,10 +172,12 @@ class Builder:
     def _edit(self, kind: str, stage: str, refs: list[str], seed: int, **fmt):
         """Build the edit graph for the configured edit model."""
         s = self.s
-        if kind in ("chibi", "back"):
+        if kind in ("chibi", "back", "side"):
             fmt.update(desc=s.desc, props=PR.props_sentence(s.props), note=PR.note_sentence(s.notes.get(stage, "")),
                        bg=S.KEY_PROMPT[s.key])
         prompt = PR.PROMPTS[s.edit_model][kind].format(**fmt)
+        if kind == "side" and s.edit_model != "qwen21":
+            raise SystemExit("side views by edit are only implemented for --edit-model qwen21")
         fn = W.qwen21_edit if s.edit_model == "qwen21" else W.flux3_edit
         return fn(prompt, refs, width=1024, height=1024, seed=seed, prefix=f"ccr/{s.name}_{stage}")
 
@@ -193,23 +211,12 @@ class Builder:
             self._gen("chibi", self._edit("chibi", "chibi", [self._ref("concept")], seed), seed)
 
     def back(self) -> None:
-        """Back standing view, drawn from the front view. A colour heuristic warns if it seems to show a face;
-        it does not retry (so far it only raised false alarms) - the reviewer decides."""
-        if not self._need("back"):
-            return
-        seed = self._seed("back", 2000)
-        img = self._gen("back", self._edit("back", "back", [self._ref("chibi")], seed), seed)
-        front = S.key_background(Image.open(self.raw / "chibi.png")).resize((96, 96), Image.BOX)
-        skin = S._skin_color(front)
-        problems = []
-        if skin is not None:
-            n_front = max(1, S._skin_stats(front, skin, 0.035)[0])
-            n = S._skin_stats(S.key_background(img).resize((96, 96), Image.BOX), skin, 0.035)[0]
-            if n > 0.4 * n_front:
-                problems.append(f"may show a face ({n} pixels of skin colour {tuple(int(v) for v in skin)} in the head "
-                                f"area, front view has {n_front}) - colour heuristic, check by eye")
-        self.state["stages"]["back"]["problems"] = problems
-        self.save_state()
+        """Back standing view, drawn from the front view. Judged by the reviewer at the `views` gate: a colour test
+        for "still shows a face" raised false alarms on 3 of 5 characters (beige headwrap, blanket roll, dark skin,
+        red hair) and never caught a real error, so there is none."""
+        if self._need("back"):
+            seed = self._seed("back", 2000)
+            self._gen("back", self._edit("back", "back", [self._ref("chibi")], seed), seed, problems=[])
 
     # ---- standing views in clip space -----------------------------------------
     def _stands(self) -> dict:
@@ -222,6 +229,7 @@ class Builder:
         return meta
 
     def _clip(self, prompt: str, start: str, end: str, length: int, seed: int, prefix: str, tmp: Path, fast: bool = True):
+        self._log(f"{prefix.split('_', 1)[-1]} clip (seed {seed}) ...")
         shutil.rmtree(tmp, ignore_errors=True)
         g = W.wan22_i2v(prompt, start, end=end, width=self.s.video_size, height=self.s.video_size, length=length,
                         seed=seed, fast=fast, negative=W.WAN_NEG + PR.WAN_NEG_EXTRA, prefix=prefix)
@@ -242,6 +250,15 @@ class Builder:
     def turns(self) -> None:
         s = self.s
         need = [side for side in SIDES if self._need(f"turn_{side}")]
+        if not need:
+            return
+        # a side that already needed the edit fallback goes there directly on a redo (the clips will not turn that way)
+        def failed_before(x):
+            st = self.state["stages"].get(f"turn_{x}", {})
+            return st.get("source") == "edit" or any("no clip turned this way" in p for p in st.get("problems", []))
+        for side in [x for x in need if failed_before(x)]:
+            self._side_by_edit(side, ["earlier clips did not show this side"])
+            need.remove(side)
         if not need:
             return
         self._stands()
@@ -290,6 +307,11 @@ class Builder:
             how = f"{order}{', mirrored input' if mirrored else ''}, seed {seed}"
             if r["problems"] or got not in missing:
                 failures.append(f"{how}: " + ("; ".join(r["problems"]) or f"faces {got} again"))
+                keep = self.raw / "turn_tries"
+                keep.mkdir(exist_ok=True)
+                for f in files:
+                    if f.suffix == ".webp":
+                        f.replace(keep / f"{order}{'_mirrored' if mirrored else ''}_seed{seed}.webp")
                 continue
             flat = Image.new("RGB", keyed[0].size, bg)           # the picked frame on a perfectly flat background
             flat.paste(keyed[r["index"]], (0, 0), keyed[r["index"]])
@@ -300,24 +322,41 @@ class Builder:
             self._done(f"turn_{got}", seconds=round(time.time() - t, 1), seed=seed, order=order, mirrored_input=mirrored,
                        frame=frame, problems=[])
         shutil.rmtree(tmp, ignore_errors=True)
-        for side in need:                                       # last resort: mirror the other side
+        for side in need:                                       # fallback: the edit model draws the side view
             if side in done:
                 continue
-            other = self.raw / f"stand_{'right' if side == 'left' else 'left'}.png"
-            if not other.exists():
-                raise SystemExit(f"could not get a side view for {s.name}: {failures}")
-            ImageOps.mirror(Image.open(other)).save(self.raw / f"stand_{side}.png")
-            (self.raw / f"turn_{side}").mkdir(exist_ok=True)
-            Image.open(self.raw / f"stand_{side}.png").save(self.raw / f"turn_{side}" / "mirrored.png")
-            self._done(f"turn_{side}", problems=["no clip turned this way; mirrored the other side view - items worn on "
-                                                 "one side are on the wrong side"] + failures)
+            self._side_by_edit(side, failures)
+
+    def _side_by_edit(self, side: str, failures: list[str]) -> None:
+        """No turn clip showed this side (for some asymmetric characters the video model always turns the same
+        way - experiment 19, Kaela). The image edit model draws it from the approved front and back views."""
+        s = self.s
+        meta = self._stands()
+        seed = self._seed(f"turn_{side}", 5500)
+        t = time.time()
+        g = self._edit("side", f"turn_{side}", [self._ref("chibi"), self._ref("back")], seed,
+                       FACING=side.upper(), facing=side)
+        img = Image.open(self.c.run(g, self.raw, stem=f"side_{side}__tmp")[0])
+        img.save(self.raw / f"side_{side}.png")
+        (self.raw / f"side_{side}__tmp.png").unlink(missing_ok=True)
+        frames, _ = V.start_frames({"down": Image.open(self.raw / "chibi.png"), side: img}, s.video_size,
+                                   scale=meta["scale"])
+        frames[side].save(self.raw / f"stand_{side}.png")
+        shutil.rmtree(self.raw / f"turn_{side}", ignore_errors=True)
+        self._done(f"turn_{side}", seconds=round(time.time() - t, 1), seed=seed, source="edit", tries=failures,
+                   problems=[f"no turn clip showed this side ({len(failures)} tried, previews in raw/turn_tries/); "
+                             f"drawn by the image edit model instead - check facing and items carefully"])
 
     def pick(self, side: str, frame: int) -> None:
         """Reviewer's choice: use frame number `frame` (1-based, as in the file names and the review sheet) of
         the stored turn clip as the side view. The walk clip of that side is redone."""
         files = sorted((self.raw / f"turn_{side}").glob("*.png"))
-        if side not in SIDES or len(files) < 2:
-            raise SystemExit(f"no turn clip stored for '{side}'")
+        if side not in SIDES:
+            raise SystemExit(f"--pick: side must be left or right, not '{side}'")
+        if len(files) < 2:
+            raise SystemExit(f"--pick {side}: this side view was drawn by the edit model, not taken from a turn clip, so "
+                             f"there are no frames to pick from. Use --redo turn_{side} (a new drawing), optionally with "
+                             f"--note turn_{side}=\"...\"")
         if not 1 <= frame <= len(files):
             raise SystemExit(f"frame must be 1..{len(files)}")
         keyed = V.key_frames([Image.open(files[frame - 1]).convert("RGB")])[0]
@@ -326,6 +365,7 @@ class Builder:
         flat.save(self.raw / f"stand_{side}.png")
         self.state["stages"].setdefault(f"turn_{side}", {}).update(frame=frame, picked_by="reviewer")
         self.redo.add(f"walk_{side}")
+        self.state["pending"] = sorted(self.redo)
         self.save_state()
 
     # -- walk clips: Wan animates each standing view; first frame = last frame = the standing view -----
@@ -338,12 +378,16 @@ class Builder:
                 continue
             start = self.c.upload_image(self.raw / f"stand_{d}.png", f"ccr_{s.name}_stand_{d}.png")
             prompt = PR.WALK_VIDEO.format(view=PR.VIDEO_VIEW[d], bg=s.key, desc=s.desc, props=PR.props_sentence(s.props))
-            tmp, best = self.raw / f"{stage}__tmp", None
+            tmp, best, tries = self.raw / f"{stage}__tmp", None, []
             for attempt in range(s.max_retries + 1):
                 seed = self._seed(stage, 4000, attempt)
                 t = time.time()
                 files = self._clip(prompt, start, start, s.video_length, seed, f"ccr/{s.name}_{stage}", tmp, s.video_fast)
                 a = V.analyse_clip(tmp, meta["cell"])
+                tries.append({"seed": seed, "problems": a["problems"]})
+                if a["problems"]:
+                    self._log(f"{stage}: {'; '.join(a['problems'])} - trying again" if attempt < s.max_retries else
+                              f"{stage}: {'; '.join(a['problems'])} - keeping the best take")
                 score = (len(a["problems"]), a["cycle"]["seam"])
                 if best is None or score < best[0]:
                     self._keep_clip(files, tmp, stage)
@@ -352,22 +396,25 @@ class Builder:
                 if not a["problems"]:
                     break
             shutil.rmtree(tmp, ignore_errors=True)
-            self._done(stage, attempts=attempt + 1, **best[1])
+            self._done(stage, attempts=attempt + 1, tries=tries, **best[1])
 
     def faces(self) -> None:
+        """portrait = head-and-shoulders edit of the concept, the shared reference; every face tile, the neutral
+        one included, is an expression edit of it. (The neutral tile used to be the portrait itself and looked
+        softer than the others, which had been through one more edit.)"""
         s, bg = self.s, S.KEY_PROMPT[self.s.key]
         table = {**PR.EMOTIONS, **s.extra_emotions}
-        if self._need("face_neutral"):
-            seed = self._seed("face_neutral", 3000)
-            self._gen("face_neutral", self._edit("portrait", "face_neutral", [self._ref("concept")], seed,
-                                                 expression=table["neutral"], bg=bg), seed)
-        neutral = None
+        if self._need("portrait"):
+            seed = self._seed("portrait", 3000)
+            self._gen("portrait", self._edit("portrait", "portrait", [self._ref("concept")], seed,
+                                             expression=table["neutral"], bg=bg), seed)
+        ref = None
         for e in s.emotions:
-            if e == "neutral" or not self._need(f"face_{e}"):
+            if not self._need(f"face_{e}"):
                 continue
-            neutral = neutral or self._ref("face_neutral")       # every emotion is edited from the neutral face
+            ref = ref or self._ref("portrait")
             seed = self._seed(f"face_{e}", 3000)
-            self._gen(f"face_{e}", self._edit("expression", f"face_{e}", [neutral], seed, expression=table[e]), seed)
+            self._gen(f"face_{e}", self._edit("expression", f"face_{e}", [ref], seed, expression=table[e]), seed)
 
     # ---- review gates ---------------------------------------------------------
     def _hashes(self, gate: str) -> dict:
@@ -388,7 +435,8 @@ class Builder:
         s = self.s
         if gate == "views":
             tiles = [("CONCEPT (the design)", "concept"), ("FRONT VIEW (chibi)", "chibi"), ("BACK VIEW", "back")]
-            checks = ["FRONT: exactly one character, whole body inside the picture, standing straight, arms at the sides",
+            checks = ["FRONT: exactly one character, whole body inside the picture, standing straight, arms hanging down "
+                      "(a hand holding an item is fine)",
                       "FRONT: hair, face, outfit and colours match the concept",
                       "BACK: a true back view - no face, back of the hair or headwear, back of the outfit",
                       "BACK: same character, same outfit pieces and colours, same size as the front view",
@@ -489,9 +537,12 @@ class Builder:
             frames = {d: [P.outline(f, None, "inner") for f in frames[d]] for d in sheets.DIRS}
             anim = {d: [P.outline(f, None, "inner") for f in anim[d]] for d in sheets.DIRS}
         problems = [f"walk_{d}: {p}" for d in sheets.DIRS for p in walk_qc[d]["problems"]]
-        problems += [f"{st}: {p}" for st in ("back", "turn_left", "turn_right")
-                     for p in self.state["stages"].get(st, {}).get("problems", [])]
-        generated_qc = {"ok": not problems, "problems": problems}
+        reviewed = []                                            # warnings of views a reviewer has approved
+        for gate, stages in (("views", ["back"]), ("sides", ["turn_left", "turn_right"])):
+            for st in stages:
+                msgs = [f"{st}: {p}" for p in self.state["stages"].get(st, {}).get("problems", [])]
+                (reviewed if self.approved(gate) else problems).extend(msgs)
+        generated_qc = {"ok": not problems, "problems": problems, "accepted_at_review": reviewed}
         pal = P.build_palette([f for d in sheets.DIRS for f in frames[d] + anim[d]], n_sprite)
         frames = {d: [P.apply_palette(f, pal) for f in frames[d]] for d in sheets.DIRS}
         anim = {d: [P.apply_palette(f, pal) for f in anim[d]] for d in sheets.DIRS}
@@ -577,7 +628,8 @@ def main() -> None:
     ap.add_argument("--props", default=None, help='carried items that must show in every view, e.g. "a greatsword strapped '
                                                   'diagonally across the back, hilt above the right shoulder"')
     ap.add_argument("--note", action="append", default=[], metavar="STAGE=TEXT",
-                    help="correction added to the prompt of one stage (chibi or back); STAGE= clears it")
+                    help="correction added to the prompt of one stage (chibi, back, or turn_left/turn_right when that "
+                         "side view was drawn by the edit model); STAGE= clears it")
     ap.add_argument("--redo", default="", help="comma-separated stages to regenerate: concept chibi back turn_left "
                                                "turn_right walk_down walk_left walk_right walk_up face_<emotion>")
     ap.add_argument("--variant", type=int, default=None, help="with --redo: seed variant for the named stages (default: one "
