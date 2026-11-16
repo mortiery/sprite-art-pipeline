@@ -199,6 +199,9 @@ this.load.spritesheet('selka-walk', 'characters/selka/selka_walk.png', { frameWi
 Game config: `pixelArt: true, roundPixels: true`. Scale sprites by whole numbers only (2x, 3x). Faces are
 144 px with a 2 px grid: show them at 72 px or 144 px.
 
+Publish it: `python3 tools/build_demo.py` writes `dist/` with the page, Phaser and only the sheets the game
+loads (`--characters rin,kaela` for a subset, `--busts` to include the busts); upload the folder as it is.
+
 Run the demo: `python3 -m http.server 8765` in the project root, then open
 `http://127.0.0.1:8765/phaser-demo/` (arrows walk, Tab switches the hero, Space talks / next emotion;
 `?rm` uses the 3-frame sheets).

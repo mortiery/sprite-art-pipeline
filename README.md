@@ -18,6 +18,8 @@ AI agents can call it. Researched and tested on 2026-11-15/16 with ComfyUI 0.45.
 | [docs/01-research-notes.md](docs/01-research-notes.md) | what the web research found (models, approaches, specs, licences) |
 | [docs/02-experiments.md](docs/02-experiments.md) | every experiment, what won and why, negative results |
 | [docs/03-agent-guide.md](docs/03-agent-guide.md) | how an agent generates characters, reviews them and uses them in Phaser |
+| [CLAUDE.md](CLAUDE.md) | notes for the next working session: environment, conventions, test protocol, open issues |
+| [docs/test-round-brief.md](docs/test-round-brief.md) | the brief given to fresh subagents to test the guide |
 
 ## Quick start
 
@@ -36,6 +38,9 @@ python3 -m pipeline.character --name garrick --approve sides
 
 # 4. play
 python3 -m http.server 8765      # then open http://127.0.0.1:8765/phaser-demo/
+
+# 5. publish: a self-contained copy of the demo for any static web host
+python3 tools/build_demo.py      # -> dist/ (about 2 MB for five characters)
 ```
 
 About 25 minutes of GPU time per character. Output lands in `characters/<name>/` (file list in the agent
@@ -153,6 +158,7 @@ pipeline/
   pixelize.py          k-centroid downscale, OKLab palette, outlines, previews
   sheets.py            RPG Maker sheet assembly + manifest
   export_workflows.py  writes workflows/*.json
+tools/build_demo.py    builds dist/: the demo with only the files it loads, for static hosting
 workflows/             API-format JSON for every stage (for POST /prompt or an MCP server)
 characters/            generated characters (one folder each) + index.json for the demo
 phaser-demo/           Phaser 4 demo and the reusable loader rpgchar.js
