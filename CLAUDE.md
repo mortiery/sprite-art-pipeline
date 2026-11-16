@@ -49,6 +49,15 @@ Per-character state (description, notes, seeds, approvals, pending redos, look o
 - Raw video frames (`characters/*/raw/walk_*/`, `turn_*/`) are gitignored (26 MB per clip). A fresh clone
   needs the clips regenerated (same seeds give identical results on this machine) before `--post-only` works.
 
+## Git
+
+- Commits in this repository are authored as **Yannick Mortier <34096941+mortiery@users.noreply.github.com>** (set in the
+  repository's own `.git/config`; the machine's global identity is a different one - do not override the local
+  setting). The repository is meant to be public: no other personal details in files or commits.
+- `push.autoSetupRemote` is on, so the first `git push` of a branch sets its upstream.
+- Push `master` only. The local branch `backup-before-author-rewrite` holds the commits from before the author
+  rewrite (old identity) and must never be pushed; delete it once the public repository is set up.
+
 ## Iterating: fresh-agent test rounds
 
 The pipeline is tested by giving a subagent with no context the brief in `docs/test-round-brief.md` (a new
